@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useUser, useMemoFirebase, useAuth } from "@/firebase";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCollection, useFirestore } from "@/firebase";
 import { collection, query, orderBy } from 'firebase/firestore';
 import type { Post } from "@/lib/types";
@@ -33,12 +33,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "firebase/auth";
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "next-themes";
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const firestore = useFirestore();
   const auth = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [isDark, setIsDark] = useState(theme === 'dark');
+
+  useEffect(() => {
+    setIsDark(theme === 'dark');
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+  };
+
 
   const postsQuery = useMemoFirebase(
     () =>
@@ -147,9 +160,9 @@ export default function Home() {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                     <DropdownMenuItem asChild>
-                      <Link href="/profile/edit-avatar">
+                      <Link href="/profile/edit">
                         <Shirt className="mr-3" />
-                        <span>Edit Avatar</span>
+                        <span>Edit Profile</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -192,7 +205,7 @@ export default function Home() {
                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         <Moon className="mr-3" />
                         <span>Dark Mode</span>
-                        <Switch className="ml-auto" checked={true} />
+                        <Switch className="ml-auto" checked={isDark} onCheckedChange={toggleTheme} />
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />

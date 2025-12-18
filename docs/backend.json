@@ -33,6 +33,20 @@
           "type": "string",
           "description": "Timestamp indicating when the user account was created.",
           "format": "date-time"
+        },
+        "unlockedAchievements": {
+            "type": "array",
+            "description": "A list of achievement IDs that the user has unlocked.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "displayedBadges": {
+            "type": "array",
+            "description": "A list of achievement IDs that the user has chosen to display on their profile.",
+            "items": {
+                "type": "string"
+            }
         }
       },
       "required": [

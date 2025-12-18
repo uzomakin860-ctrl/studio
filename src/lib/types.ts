@@ -28,3 +28,20 @@ export type Post = {
   isVerified?: boolean;
   donations?: PostDonations | null;
 };
+
+export type UserProfile = {
+    id: string;
+    username: string;
+    email: string;
+    profilePictureUrl?: string;
+    bio?: string;
+    unlockedAchievements?: string[];
+    displayedBadges?: string[];
+};
+
+export type Achievement = {
+    id: string;
+    title: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+};
