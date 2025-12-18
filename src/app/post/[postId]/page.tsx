@@ -61,15 +61,14 @@ function CommentCard({ comment }: { comment: Comment }) {
 
 
 export default function PostPage({ params }: { params: { postId: string } }) {
-  const { postId } = params;
   const { user } = useUser();
   const firestore = useFirestore();
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const postRef = useMemoFirebase(
-    () => (firestore ? doc(firestore, 'posts', postId) : null),
-    [firestore, postId]
+    () => (firestore ? doc(firestore, 'posts', params.postId) : null),
+    [firestore, params.postId]
   );
   const { data: post, isLoading } = useDoc<Post>(postRef);
 
