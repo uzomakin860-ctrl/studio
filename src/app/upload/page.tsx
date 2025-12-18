@@ -74,6 +74,7 @@ export default function UploadPage() {
         content: values.content,
         tags: values.tags?.split(',').map(tag => tag.trim()).filter(tag => tag) || [],
         upvotes: [],
+        downvotes: [],
         comments: [],
         createdAt: serverTimestamp(),
         donations: values.enableDonations ? {

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Plus, MessageCircle, ArrowUp } from "lucide-react";
+import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useUser, useMemoFirebase } from "@/firebase";
@@ -11,14 +11,7 @@ import { useCollection, useFirestore } from "@/firebase";
 import { collection, query, orderBy } from 'firebase/firestore';
 import type { Post } from "@/lib/types";
 import { PostCard } from "@/components/app/post-card";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -55,17 +48,34 @@ export default function Home() {
     <div className="min-h-svh bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <h1 className="text-xl font-bold">Feed</h1>
-          <Button asChild>
-            <Link href="/upload">
-              <Plus className="mr-2 h-4 w-4" /> New Post
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon">
+              <Menu />
+            </Button>
+            <h1 className="text-xl font-bold">Feed</h1>
+          </div>
+          <div className="flex items-center gap-2">
+             <Button variant="ghost" size="icon" asChild>
+                <Link href="/upload">
+                    <Plus />
+                </Link>
+            </Button>
+            <Button variant="ghost" size="icon">
+              <Search />
+            </Button>
+            <Button variant="ghost" size="icon">
+              <Bell />
+            </Button>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.photoURL || ''} />
+              <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto p-4">
-        <div className="space-y-4">
+      <main className="container mx-auto p-4 md:p-6">
+        <div className="mx-auto max-w-3xl space-y-4">
           {posts && posts.length > 0 ? (
             posts.map((post) => (
               <PostCard key={post.id} post={post} />

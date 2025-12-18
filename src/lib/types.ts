@@ -22,6 +22,7 @@ export type Post = {
   content: string;
   tags: string[];
   upvotes: string[]; // Array of user IDs who upvoted
+  downvotes?: string[]; // Array of user IDs who downvoted
   comments: Comment[];
   createdAt: any;
   isVerified?: boolean;

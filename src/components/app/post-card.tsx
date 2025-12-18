@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, MessageCircle, Gift } from 'lucide-react';
+import { ArrowUp, ArrowDown, MessageCircle, Gift, Share } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
@@ -38,17 +38,45 @@ export function PostCard({ post }: { post: Post }) {
     if (!user || !firestore) return;
     const postRef = doc(firestore, 'posts', post.id);
     const isUpvoted = post.upvotes.includes(user.uid);
+    const isDownvoted = post.downvotes?.includes(user.uid);
 
-    let newUpvotes;
+    let newUpvotes = [...post.upvotes];
+    let newDownvotes = [...(post.downvotes || [])];
+
     if (isUpvoted) {
-      newUpvotes = post.upvotes.filter(uid => uid !== user.uid);
+      newUpvotes = newUpvotes.filter(uid => uid !== user.uid);
     } else {
-      newUpvotes = [...post.upvotes, user.uid];
+      newUpvotes.push(user.uid);
+      if (isDownvoted) {
+        newDownvotes = newDownvotes.filter(uid => uid !== user.uid);
+      }
     }
-    updateDocumentNonBlocking(postRef, { upvotes: newUpvotes });
+    updateDocumentNonBlocking(postRef, { upvotes: newUpvotes, downvotes: newDownvotes });
   };
   
+  const handleDownvote = () => {
+    if (!user || !firestore) return;
+    const postRef = doc(firestore, 'posts', post.id);
+    const isUpvoted = post.upvotes.includes(user.uid);
+    const isDownvoted = post.downvotes?.includes(user.uid);
+
+    let newUpvotes = [...post.upvotes];
+    let newDownvotes = [...(post.downvotes || [])];
+
+    if (isDownvoted) {
+      newDownvotes = newDownvotes.filter(uid => uid !== user.uid);
+    } else {
+      newDownvotes.push(user.uid);
+      if (isUpvoted) {
+        newUpvotes = newUpvotes.filter(uid => uid !== user.uid);
+      }
+    }
+    updateDocumentNonBlocking(postRef, { upvotes: newUpvotes, downvotes: newDownvotes });
+  };
+
   const isUpvoted = user ? post.upvotes.includes(user.uid) : false;
+  const isDownvoted = user ? post.downvotes?.includes(user.uid) : false;
+  const voteCount = (post.upvotes?.length || 0) - (post.downvotes?.length || 0);
 
   const timeAgo = post.createdAt?.seconds
   ? formatDistanceToNow(new Date(post.createdAt.seconds * 1000), { addSuffix: true })
@@ -56,86 +84,98 @@ export function PostCard({ post }: { post: Post }) {
 
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div className="flex-1 space-y-1.5">
-            <CardTitle>{post.title}</CardTitle>
-            <CardDescription>
-              <div className="flex items-center gap-2 text-xs">
-                <Avatar className="h-5 w-5">
-                  <AvatarImage src={post.userProfileUrl} />
-                  <AvatarFallback>{post.username[0]}</AvatarFallback>
-                </Avatar>
-                <span>{post.username}</span>
-                <span>·</span>
-                <span>{timeAgo}</span>
-              </div>
-            </CardDescription>
-          </div>
-          <div className="flex flex-col items-center gap-1">
-             <Button 
-                variant={isUpvoted ? 'default' : 'ghost'} 
-                size="sm" 
-                onClick={handleUpvote}
-                className="flex items-center gap-1.5"
-             >
-                <ArrowUp className={cn("h-4 w-4", isUpvoted && "text-primary-foreground")} />
-                <span>{post.upvotes?.length || 0}</span>
-             </Button>
+          <div className="flex items-center gap-3">
+             <Avatar className="h-8 w-8">
+                <AvatarImage src={post.userProfileUrl} />
+                <AvatarFallback>{post.username[0]}</AvatarFallback>
+            </Avatar>
+            <div>
+                <CardTitle className="text-base">{post.title}</CardTitle>
+                <CardDescription>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span>{post.username}</span>
+                    <span>·</span>
+                    <span>{timeAgo}</span>
+                  </div>
+                </CardDescription>
+            </div>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <p className="whitespace-pre-wrap line-clamp-6">{post.content}</p>
-      </CardContent>
-      <CardFooter className="flex justify-between items-center">
-         <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap mt-4">
             {post.tags?.map(tag => (
                 <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
         </div>
-        <div className="flex items-center gap-2">
-            {post.donations && (post.donations.cashAppName || post.donations.phoneNumber) && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-1.5">
-                    <Gift className="h-4 w-4 text-green-500" />
-                    <span>Donate</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Donate to {post.username}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      You can support this creator using the following methods.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <div className="py-4 space-y-2">
-                    {post.donations.cashAppName && (
-                      <div>
-                        <p className="font-semibold">Cash App:</p>
-                        <p className="text-sm text-muted-foreground">{post.donations.cashAppName}</p>
-                      </div>
-                    )}
-                    {post.donations.phoneNumber && (
-                       <div>
-                        <p className="font-semibold">Phone:</p>
-                        <p className="text-sm text-muted-foreground">{post.donations.phoneNumber}</p>
-                      </div>
-                    )}
+      </CardContent>
+      <CardFooter className="bg-muted/50 px-4 py-2 flex justify-start items-center gap-1">
+         <Button 
+            variant='ghost' 
+            size="sm" 
+            onClick={handleUpvote}
+            className={cn("flex items-center gap-1.5", isUpvoted && "text-primary")}
+         >
+            <ArrowUp className="h-4 w-4" />
+         </Button>
+         <span className={cn("font-semibold text-xs", isUpvoted && "text-primary", isDownvoted && "text-destructive")}>{voteCount}</span>
+         <Button 
+            variant='ghost' 
+            size="sm" 
+            onClick={handleDownvote}
+            className={cn("flex items-center gap-1.5", isDownvoted && "text-destructive")}
+         >
+            <ArrowDown className="h-4 w-4" />
+         </Button>
+        
+        <Button variant="ghost" size="sm" className="flex items-center gap-1.5 ml-4">
+          <MessageCircle className="h-4 w-4" />
+          <span className="text-xs">{post.comments?.length || 0}</span>
+        </Button>
+
+        {post.donations && (post.donations.cashAppName || post.donations.phoneNumber) && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
+                <Gift className="h-4 w-4" />
+                <span className="text-xs hidden sm:inline">Donate</span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Donate to {post.username}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You can support this creator using the following methods.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="py-4 space-y-2">
+                {post.donations.cashAppName && (
+                  <div>
+                    <p className="font-semibold">Cash App:</p>
+                    <p className="text-sm text-muted-foreground">{post.donations.cashAppName}</p>
                   </div>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Close</AlertDialogCancel>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
-              <MessageCircle className="h-4 w-4" />
-              <span>{post.comments?.length || 0}</span>
-            </Button>
-        </div>
+                )}
+                {post.donations.phoneNumber && (
+                   <div>
+                    <p className="font-semibold">Phone:</p>
+                    <p className="text-sm text-muted-foreground">{post.donations.phoneNumber}</p>
+                  </div>
+                )}
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Close</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+        <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
+          <Share className="h-4 w-4" />
+          <span className="text-xs hidden sm:inline">Share</span>
+        </Button>
       </CardFooter>
     </Card>
   );
