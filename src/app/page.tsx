@@ -3,41 +3,104 @@
 import {
   Home as HomeIcon,
   User,
-  Upload,
-  PlaySquare,
+  Heart,
+  MessageCircle,
+  Send,
+  Music,
   Compass,
-  Users,
-  LogIn,
+  Inbox,
+  PlusSquare,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-
+import { cn } from "@/lib/utils";
 
 function VideoPost() {
   return (
-    <div className="h-full w-full snap-center relative flex justify-center">
-      <div className="absolute inset-0 bg-black flex items-center justify-center text-white">
+    <div className="h-full w-full snap-center relative flex items-center justify-center bg-black">
+       {/* Placeholder for video */}
+       <div className="absolute inset-0 flex items-center justify-center text-white">
         <p>No videos yet. Be the first to upload!</p>
+      </div>
+      
+      <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-10">
+        <div className="flex justify-between items-end">
+          {/* Left side: User Info & Caption */}
+          <div className="flex-1 pr-4">
+            <div className="font-bold">@username</div>
+            <div className="text-sm">This is the video caption #hashtag</div>
+            <div className="flex items-center gap-2 mt-2">
+              <Music className="w-4 h-4" />
+              <div className="text-sm">Original Sound - song name</div>
+            </div>
+          </div>
+
+          {/* Right side: Action Buttons */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center">
+              <Avatar className="w-12 h-12 border-2 border-white">
+                <AvatarImage src="https://picsum.photos/seed/1/100" />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+               <Button size="icon" variant="ghost" className="rounded-full bg-primary -mt-4 w-6 h-6 text-white text-xs">+</Button>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <Button size="icon" variant="ghost" className="rounded-full text-white hover:bg-white/20 hover:text-white">
+                <Heart className="w-8 h-8" />
+              </Button>
+              <span className="text-xs font-bold">1.2M</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+               <Button size="icon" variant="ghost" className="rounded-full text-white hover:bg-white/20 hover:text-white">
+                <MessageCircle className="w-8 h-8" />
+              </Button>
+              <span className="text-xs font-bold">10.3K</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+               <Button size="icon" variant="ghost" className="rounded-full text-white hover:bg-white/20 hover:text-white">
+                <Send className="w-8 h-8" />
+              </Button>
+              <span className="text-xs font-bold">5.1K</span>
+            </div>
+             <div className="w-12 h-12 rounded-full bg-gray-800 animate-spin-slow">
+                 <Avatar className="w-12 h-12">
+                    <AvatarImage src="https://picsum.photos/seed/2/100" />
+                 </Avatar>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+const BottomNavItem = ({
+  href,
+  icon,
+  label,
+  isActive = false,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  isActive?: boolean;
+}) => (
+  <Link href={href}>
+    <div
+      className={cn(
+        "flex flex-col items-center gap-1 text-xs text-gray-400 hover:text-white",
+        isActive && "text-white font-bold"
+      )}
+    >
+      {icon}
+      {label}
+    </div>
+  </Link>
+);
 
 
 export default function Home() {
@@ -50,65 +113,25 @@ export default function Home() {
     }
   }, [user, isUserLoading, router]);
 
-
   return (
-    <SidebarProvider>
-      <Sidebar side="left" collapsible="icon">
-        <SidebarHeader>
-          <div className="flex items-center gap-2 p-2">
-            <PlaySquare className="w-6 h-6 text-primary" />
-            <span className="font-bold text-lg">ClipStream</span>
+    <div className="h-svh w-full bg-black flex flex-col">
+      <main className="flex-1 h-full snap-y snap-mandatory overflow-y-auto">
+        <VideoPost />
+        {/* We can add more VideoPost components here and they will scroll vertically */}
+      </main>
+      <footer className="bg-black border-t border-gray-800 p-2 z-20">
+          <div className="flex justify-around items-center">
+            <BottomNavItem href="#" icon={<HomeIcon className="w-6 h-6" />} label="Home" isActive />
+            <BottomNavItem href="#" icon={<Compass className="w-6 h-6" />} label="Discover" />
+            <Link href="#">
+              <div className="bg-white rounded-lg px-4 py-1.5 shadow-[0_0px_8px_theme(colors.secondary),0_0px_8px_theme(colors.primary)]">
+                <PlusSquare className="w-8 h-8 text-black" />
+              </div>
+            </Link>
+            <BottomNavItem href="#" icon={<Inbox className="w-6 h-6" />} label="Inbox" />
+            <BottomNavItem href="#" icon={<User className="w-6 h-6" />} label="Profile" />
           </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="#" isActive tooltip="Home">
-                <HomeIcon />
-                Home
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Explore">
-                <Compass />
-                Explore
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Following">
-                <Users />
-                Following
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Profile">
-                <User />
-                Profile
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset className="!p-0 !m-0 !bg-black max-w-none">
-         <header className="absolute top-0 left-0 z-10 p-4 flex items-center justify-between w-full">
-          <SidebarTrigger className="text-white hover:bg-white/20 hover:text-white" />
-          {user ? (
-            <Button variant="outline" className="text-white border-white bg-transparent hover:bg-white/20">
-              <Upload className="mr-2" /> Upload
-            </Button>
-          ) : (
-            <Button asChild variant="outline" className="text-white border-white bg-transparent hover:bg-white/20">
-              <Link href="/login">
-                <LogIn className="mr-2" /> Login
-              </Link>
-            </Button>
-          )}
-        </header>
-        <main className="h-svh w-full snap-y snap-mandatory overflow-y-auto">
-          {/* Will be populated with videos from firestore */}
-          <VideoPost />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </footer>
+    </div>
   );
 }
