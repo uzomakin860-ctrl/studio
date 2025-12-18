@@ -34,6 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { translateText } from '@/ai/flows/translate-flow';
+import { useParams } from 'next/navigation';
 
 
 function CommentCard({ comment }: { comment: Comment }) {
@@ -63,12 +64,13 @@ function CommentCard({ comment }: { comment: Comment }) {
 }
 
 
-export default function PostPage({ params }: { params: { postId: string } }) {
+export default function PostPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const params = useParams();
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { postId } = params;
+  const postId = params.postId as string;
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [isTranslated, setIsTranslated] = useState(false);
