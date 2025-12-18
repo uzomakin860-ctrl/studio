@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { Post } from '@/lib/types';
+import type { Post, UserProfile } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -14,8 +14,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowUp, ArrowDown, MessageCircle, Gift, Share, Languages, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useUser, useFirestore, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useFirestore, updateDocumentNonBlocking, deleteDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -49,6 +49,31 @@ export function PostCard({ post }: { post: Post }) {
   const [isTranslating, setIsTranslating] = useState(false);
   const [isTranslated, setIsTranslated] = useState(false);
   const { toast } = useToast();
+
+  const currentUserProfileRef = useMemoFirebase(
+    () => (user ? doc(firestore, `users/${user.uid}`) : null),
+    [user, firestore]
+  );
+  const { data: currentUserProfile } = useDoc<UserProfile>(currentUserProfileRef);
+
+  const handleFollow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || !post || !firestore) return;
+    const currentUserRef = doc(firestore, 'users', user.uid);
+    const targetUserRef = doc(firestore, 'users', post.userId);
+    updateDocumentNonBlocking(currentUserRef, { following: arrayUnion(post.userId) });
+    updateDocumentNonBlocking(targetUserRef, { followers: arrayUnion(user.uid) });
+  };
+
+  const handleUnfollow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || !post || !firestore) return;
+    const currentUserRef = doc(firestore, 'users', user.uid);
+    const targetUserRef = doc(firestore, 'users', post.userId);
+    updateDocumentNonBlocking(currentUserRef, { following: arrayRemove(post.userId) });
+    updateDocumentNonBlocking(targetUserRef, { followers: arrayRemove(user.uid) });
+  };
+
 
   const handleTranslate = async () => {
     if (isTranslated && translatedContent) {
@@ -124,6 +149,9 @@ export function PostCard({ post }: { post: Post }) {
     });
   };
 
+  const isFollowing = currentUserProfile?.following?.includes(post.userId);
+  const isCurrentUserPost = user?.uid === post.userId;
+
   const isUpvoted = user ? post.upvotes.includes(user.uid) : false;
   const isDownvoted = user ? post.downvotes?.includes(user.uid) : false;
   const voteCount = (post.upvotes?.length || 0) - (post.downvotes?.length || 0);
@@ -151,6 +179,16 @@ export function PostCard({ post }: { post: Post }) {
                 <CardDescription>
                   <div className="flex items-center gap-2 text-xs">
                     <Link href={`/u/${post.username}`} className="hover:underline">{post.username}</Link>
+                    {!isCurrentUserPost && user && (
+                      <>
+                        <span>·</span>
+                        {isFollowing ? (
+                           <button onClick={handleUnfollow} className="font-semibold text-primary hover:underline">Following</button>
+                        ) : (
+                           <button onClick={handleFollow} className="font-semibold text-primary hover:underline">Follow</button>
+                        )}
+                      </>
+                    )}
                     <span>·</span>
                     <span>{timeAgo}</span>
                   </div>

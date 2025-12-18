@@ -59,6 +59,20 @@
         "howHeard": {
             "type": "string",
             "description": "How the user heard about the application."
+        },
+        "following": {
+            "type": "array",
+            "description": "A list of user IDs that this user is following.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "followers": {
+            "type": "array",
+            "description": "A list of user IDs that are following this user.",
+            "items": {
+                "type": "string"
+            }
         }
       },
       "required": [

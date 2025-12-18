@@ -41,6 +41,8 @@ export type UserProfile = {
     playsVideoGames?: boolean;
     favoriteGame?: string;
     howHeard?: string;
+    following?: string[];
+    followers?: string[];
 };
 
 export type Achievement = {
