@@ -1,10 +1,10 @@
 
 "use client";
 
-import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu, Heart } from "lucide-react";
+import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu, Heart, LogOut, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useUser, useMemoFirebase } from "@/firebase";
+import { useUser, useMemoFirebase, useAuth } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useCollection, useFirestore } from "@/firebase";
@@ -14,7 +14,6 @@ import { PostCard } from "@/components/app/post-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -22,12 +21,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { signOut } from "firebase/auth";
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const firestore = useFirestore();
+  const auth = useAuth();
 
   const postsQuery = useMemoFirebase(
     () =>
@@ -46,6 +55,13 @@ export default function Home() {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
+
+  const handleSignOut = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push('/login');
+    }
+  };
 
   if (isUserLoading || arePostsLoading) {
     return (
@@ -71,11 +87,15 @@ export default function Home() {
                     <Plus />
                 </Link>
             </Button>
-            <Button variant="ghost" size="icon">
-              <Search />
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/search">
+                <Search />
+              </Link>
             </Button>
-            <Button variant="ghost" size="icon">
-              <Bell />
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/notifications">
+                <Bell />
+              </Link>
             </Button>
              <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -101,10 +121,39 @@ export default function Home() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.photoURL || ''} />
-              <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
-            </Avatar>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.photoURL || ''} />
+                    <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user?.email?.split('@')[0]}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
