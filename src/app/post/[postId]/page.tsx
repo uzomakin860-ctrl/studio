@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, ArrowDown, Gift, Share, ArrowLeft, Send, Languages } from 'lucide-react';
+import { ArrowUp, ArrowDown, Gift, Share, ArrowLeft, Send } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, updateDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
@@ -33,7 +33,6 @@ import type { Post, Comment } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { translateText } from '@/ai/flows/translate-flow';
 import { useParams } from 'next/navigation';
 
 
@@ -71,9 +70,6 @@ export default function PostPage() {
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const postId = params.postId as string;
-  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [isTranslated, setIsTranslated] = useState(false);
 
   const postRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'posts', postId) : null),
@@ -81,26 +77,6 @@ export default function PostPage() {
   );
   const { data: post, isLoading } = useDoc<Post>(postRef);
   
-  const handleTranslate = async () => {
-    if (!post) return;
-    if (isTranslated && translatedContent) {
-      setIsTranslated(false);
-      return;
-    }
-
-    setIsTranslating(true);
-    try {
-      const targetLanguage = navigator.language.split('-')[0] || 'en';
-      const result = await translateText({ text: post.content, targetLanguage });
-      setTranslatedContent(result);
-      setIsTranslated(true);
-    } catch (error) {
-      console.error("Translation failed:", error);
-    } finally {
-      setIsTranslating(false);
-    }
-  };
-
   if (isLoading || !post) {
     return <div className="container mx-auto max-w-3xl p-4 text-center">Loading...</div>;
   }
@@ -217,7 +193,7 @@ export default function PostPage() {
             </div>
         )}
         <CardContent>
-          <p className="whitespace-pre-wrap">{isTranslated ? translatedContent : post.content}</p>
+          <p className="whitespace-pre-wrap">{post.content}</p>
           <div className="flex gap-2 flex-wrap mt-4">
               {post.tags?.map(tag => (
                   <Badge key={tag} variant="secondary">{tag}</Badge>
@@ -283,10 +259,6 @@ export default function PostPage() {
               </AlertDialogContent>
             </AlertDialog>
           )}
-          <Button variant="ghost" size="sm" onClick={handleTranslate} disabled={isTranslating} className="flex items-center gap-1.5">
-            <Languages className="h-4 w-4" />
-            <span className="text-sm hidden sm:inline">{isTranslating ? 'Translating...' : isTranslated ? 'Original' : 'Translate'}</span>
-          </Button>
           <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
             <Share className="h-4 w-4" />
             <span className="text-sm hidden sm:inline">Share</span>

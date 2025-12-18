@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, ArrowDown, MessageCircle, Gift, Share, Languages, MoreHorizontal, Trash2 } from 'lucide-react';
+import { ArrowUp, ArrowDown, MessageCircle, Gift, Share, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, updateDocumentNonBlocking, deleteDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
@@ -38,16 +38,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
-import { translateText } from '@/ai/flows/translate-flow';
 import { useToast } from '@/hooks/use-toast';
 
 export function PostCard({ post }: { post: Post }) {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [isTranslated, setIsTranslated] = useState(false);
   const { toast } = useToast();
 
   const currentUserProfileRef = useMemoFirebase(
@@ -74,30 +69,6 @@ export function PostCard({ post }: { post: Post }) {
     updateDocumentNonBlocking(targetUserRef, { followers: arrayRemove(user.uid) });
   };
 
-
-  const handleTranslate = async () => {
-    if (isTranslated && translatedContent) {
-      setIsTranslated(false);
-      return;
-    }
-
-    setIsTranslating(true);
-    try {
-      const targetLanguage = navigator.language.split('-')[0] || 'en';
-      const result = await translateText({ text: post.content, targetLanguage });
-      setTranslatedContent(result);
-      setIsTranslated(true);
-    } catch (error) {
-      console.error("Translation failed:", error);
-      toast({
-        variant: "destructive",
-        title: "Translation Failed",
-        description: "Could not translate the post at this time.",
-      });
-    } finally {
-      setIsTranslating(false);
-    }
-  };
 
   const handleUpvote = () => {
     if (!user || !firestore) return;
@@ -252,7 +223,7 @@ export function PostCard({ post }: { post: Post }) {
         </Link>
       )}
       <CardContent className={cn(post.imageUrl && "pt-4")}>
-        <p className="whitespace-pre-wrap line-clamp-6">{isTranslated ? translatedContent : post.content}</p>
+        <p className="whitespace-pre-wrap line-clamp-6">{post.content}</p>
         <div className="flex gap-2 flex-wrap mt-4">
             {post.tags?.map(tag => (
                 <Badge key={tag} variant="secondary">{tag}</Badge>
@@ -320,10 +291,6 @@ export function PostCard({ post }: { post: Post }) {
             </AlertDialogContent>
           </AlertDialog>
         )}
-        <Button variant="ghost" size="sm" onClick={handleTranslate} disabled={isTranslating} className="flex items-center gap-1.5">
-          <Languages className="h-4 w-4" />
-          <span className="text-xs hidden sm:inline">{isTranslating ? 'Translating...' : isTranslated ? 'Original' : 'Translate'}</span>
-        </Button>
         <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
           <Share className="h-4 w-4" />
           <span className="text-xs hidden sm:inline">Share</span>
