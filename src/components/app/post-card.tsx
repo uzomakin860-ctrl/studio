@@ -136,16 +136,16 @@ export function PostCard({ post }: { post: Post }) {
     <Card className="overflow-hidden">
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
              <Link href={`/u/${post.username}`}>
               <Avatar className="h-8 w-8">
                   <AvatarImage src={post.userProfileUrl} />
                   <AvatarFallback>{post.username[0]}</AvatarFallback>
               </Avatar>
              </Link>
-            <div>
+            <div className="flex-1 min-w-0">
                 <Link href={`/post/${post.id}`} passHref>
-                  <CardTitle className="text-base hover:underline">{post.title}</CardTitle>
+                  <CardTitle className="text-base hover:underline truncate">{post.title}</CardTitle>
                 </Link>
                 <CardDescription>
                   <div className="flex items-center gap-2 text-xs">
@@ -158,7 +158,7 @@ export function PostCard({ post }: { post: Post }) {
           </div>
            <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -286,3 +286,5 @@ export function PostCard({ post }: { post: Post }) {
     </Card>
   );
 }
+
+    
