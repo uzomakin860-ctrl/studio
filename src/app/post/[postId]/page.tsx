@@ -65,10 +65,11 @@ export default function PostPage({ params }: { params: { postId: string } }) {
   const firestore = useFirestore();
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { postId } = params;
 
   const postRef = useMemoFirebase(
-    () => (firestore ? doc(firestore, 'posts', params.postId) : null),
-    [firestore, params.postId]
+    () => (firestore ? doc(firestore, 'posts', postId) : null),
+    [firestore, postId]
   );
   const { data: post, isLoading } = useDoc<Post>(postRef);
 
