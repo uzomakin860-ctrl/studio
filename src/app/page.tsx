@@ -14,9 +14,9 @@ import {
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/firebase";
+import { useUser, useMemoFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useCollection, useFirestore } from "@/firebase";
 import { collection, query, orderBy }from 'firebase/firestore';
@@ -115,7 +115,7 @@ export default function Home() {
   const router = useRouter();
   const firestore = useFirestore();
 
-  const videosQuery = useMemo(
+  const videosQuery = useMemoFirebase(
     () =>
       firestore
         ? (query(
