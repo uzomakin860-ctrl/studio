@@ -25,7 +25,7 @@ const translateTextPrompt = ai.definePrompt(
     }
 );
 
-const translateTextFlow = ai.defineFlow(
+export const translateTextFlow = ai.defineFlow(
   {
     name: 'translateTextFlow',
     inputSchema: TranslateTextInputSchema,
