@@ -37,6 +37,9 @@ export type UserProfile = {
     bio?: string;
     unlockedAchievements?: string[];
     displayedBadges?: string[];
+    playsVideoGames?: boolean;
+    favoriteGame?: string;
+    howHeard?: string;
 };
 
 export type Achievement = {

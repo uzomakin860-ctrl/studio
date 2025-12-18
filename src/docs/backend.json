@@ -47,6 +47,18 @@
             "items": {
                 "type": "string"
             }
+        },
+        "playsVideoGames": {
+            "type": "boolean",
+            "description": "Whether the user plays video games."
+        },
+        "favoriteGame": {
+            "type": "string",
+            "description": "The user's favorite video game."
+        },
+        "howHeard": {
+            "type": "string",
+            "description": "How the user heard about the application."
         }
       },
       "required": [

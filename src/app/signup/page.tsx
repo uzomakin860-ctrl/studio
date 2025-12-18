@@ -50,7 +50,7 @@ export default function SignUpPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-      router.push('/');
+      router.push('/signup/survey');
     }
   }, [user, isUserLoading, router]);
 
