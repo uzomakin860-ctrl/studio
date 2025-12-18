@@ -20,7 +20,7 @@ export default function AchievementsPage() {
   );
   const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
-  const unlockedAchievements = userProfile?.unlockedAchievements || ['first_post', 'first_comment'];
+  const unlockedAchievements = userProfile?.unlockedAchievements || [];
 
   return (
     <div className="container mx-auto max-w-2xl p-4">

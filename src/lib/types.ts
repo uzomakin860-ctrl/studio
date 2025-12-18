@@ -45,5 +45,3 @@ export type Achievement = {
     description: string;
     icon: React.ComponentType<{ className?: string }>;
 };
-
-    

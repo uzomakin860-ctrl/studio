@@ -56,7 +56,7 @@ export default function EditProfilePage() {
     }
   }, [userProfile, form, user]);
 
-  const unlockedAchievements = userProfile?.unlockedAchievements || ['first_post', 'first_comment'];
+  const unlockedAchievements = userProfile?.unlockedAchievements || [];
 
   const toggleBadge = (achievementId: string) => {
     setSelectedBadges(prev => {

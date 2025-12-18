@@ -1,0 +1,210 @@
+
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "username": {
+          "type": "string",
+          "description": "The user's chosen username."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "profilePictureUrl": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short biography or description of the user."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        },
+        "unlockedAchievements": {
+            "type": "array",
+            "description": "A list of achievement IDs that the user has unlocked.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "displayedBadges": {
+            "type": "array",
+            "description": "A list of achievement IDs that the user has chosen to display on their profile.",
+            "items": {
+                "type": "string"
+            }
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "createdAt"
+      ]
+    },
+    "Post": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Post",
+      "type": "object",
+      "description": "Represents a text-based post in the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Post entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who created the Post."
+        },
+        "username": {
+          "type": "string",
+          "description": "Username of the user who created the post."
+        },
+        "userProfileUrl": {
+          "type": "string",
+          "description": "URL of the profile picture of the user who posted."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the post."
+        },
+        "content": {
+          "type": "string",
+          "description": "The main content of the post."
+        },
+        "tags": {
+          "type": "array",
+          "description": "A list of tags categorizing the post.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "upvotes": {
+          "type": "array",
+          "description": "An array of user IDs who have upvoted the post.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "comments": {
+          "type": "array",
+          "description": "An array of comment objects on the post.",
+          "items": {
+            "$ref": "#/backend/entities/Comment"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the post was created.",
+          "format": "date-time"
+        },
+        "donations": {
+          "type": "object",
+          "description": "Donation details for the post.",
+          "properties": {
+            "cashAppName": {
+              "type": "string",
+              "description": "The Cash App name of the user."
+            },
+            "phoneNumber": {
+              "type": "string",
+              "description": "The phone number for other payment apps."
+            }
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "username",
+        "title",
+        "content",
+        "createdAt"
+      ]
+    },
+    "Comment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Comment",
+      "type": "object",
+      "description": "Represents a comment on a Post.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Comment."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who posted the comment."
+        },
+        "username": {
+          "type": "string",
+          "description": "Username of the user who posted the comment."
+        },
+        "userProfileUrl": {
+          "type": "string",
+          "description": "Profile picture of the user who posted the comment."
+        },
+        "text": {
+          "type": "string",
+          "description": "The text content of the comment."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the comment was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "username",
+        "text",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles."
+        }
+      },
+      {
+        "path": "/posts/{postId}",
+        "definition": {
+          "entityName": "Post",
+          "schema": {
+            "$ref": "#/backend/entities/Post"
+          },
+          "description": "Stores all posts. This top-level collection allows for easy querying of all posts for the main feed."
+        }
+      }
+    ]
+  }
+}
