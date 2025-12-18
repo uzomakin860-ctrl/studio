@@ -94,7 +94,7 @@ export default function PostPage() {
         recipientId: post.userId,
         senderId: user.uid,
         senderUsername: currentUserProfile.username,
-        senderProfileUrl: currentUserProfile.profilePictureUrl || `https://picsum.photos/seed/${user.uid}/100`,
+        senderProfileUrl: currentUserProfile.profilePictureUrl || user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
         type: type,
         postId: post.id,
         postTitle: post.title,
@@ -152,7 +152,7 @@ export default function PostPage() {
       id: uuidv4(),
       userId: user.uid,
       username: currentUserProfile.username,
-      userProfileUrl: currentUserProfile.profilePictureUrl || `https://picsum.photos/seed/${user.uid}/100`,
+      userProfileUrl: currentUserProfile.profilePictureUrl || user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
       text: commentText.trim(),
       createdAt: Timestamp.now(),
     };

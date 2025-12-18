@@ -58,7 +58,7 @@ export function PostCard({ post }: { post: Post }) {
         recipientId: post.userId,
         senderId: user.uid,
         senderUsername: currentUserProfile.username,
-        senderProfileUrl: currentUserProfile.profilePictureUrl || `https://picsum.photos/seed/${user.uid}/100`,
+        senderProfileUrl: currentUserProfile.profilePictureUrl || user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
         type: type,
         postId: type === 'upvote' ? post.id : undefined,
         postTitle: type === 'upvote' ? post.title : undefined,
