@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu, Heart, LogOut, User as UserIcon, Shirt, FileText, Trophy, DollarSign, Shield, Moon, Settings, Megaphone, Clock } from "lucide-react";
+import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu, Heart, LogOut, User as UserIcon, Shirt, FileText, Trophy, DollarSign, Shield, Moon, Settings, Megaphone, Clock, Ghost } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useUser, useMemoFirebase, useAuth } from "@/firebase";
@@ -94,7 +94,7 @@ export default function Home() {
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon">
-              <Menu />
+              <Ghost />
             </Button>
             <h1 className="text-xl font-bold">Feed</h1>
           </div>
