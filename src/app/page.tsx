@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu } from "lucide-react";
+import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu, Heart } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useUser, useMemoFirebase } from "@/firebase";
@@ -12,6 +12,17 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import type { Post } from "@/lib/types";
 import { PostCard } from "@/components/app/post-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -66,6 +77,30 @@ export default function Home() {
             <Button variant="ghost" size="icon">
               <Bell />
             </Button>
+             <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Heart className="text-red-500" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Support the Creator</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Enjoying the app? You can show your support by sending a tip to the creator. Every little bit helps!
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4 space-y-2">
+                  <div>
+                    <p className="font-semibold">Bkash:</p>
+                    <p className="text-sm text-muted-foreground">01308766555</p>
+                  </div>
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Close</AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Avatar className="h-8 w-8">
               <AvatarImage src={user?.photoURL || ''} />
               <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
