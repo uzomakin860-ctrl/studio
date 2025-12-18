@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu, Heart, LogOut, User as UserIcon } from "lucide-react";
+import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu, Heart, LogOut, User as UserIcon, Shirt, FileText, Trophy, DollarSign, Shield, Moon, Settings, Megaphone, Clock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useUser, useMemoFirebase, useAuth } from "@/firebase";
@@ -29,8 +29,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "firebase/auth";
+import { Switch } from "@/components/ui/switch";
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -70,6 +72,8 @@ export default function Home() {
       </div>
     );
   }
+  
+  const username = user?.email?.split('@')[0];
 
   return (
     <div className="min-h-svh bg-background text-foreground">
@@ -127,30 +131,74 @@ export default function Home() {
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user?.photoURL || ''} />
-                    <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{username?.[0].toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.email?.split('@')[0]}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
+              <DropdownMenuContent className="w-64" align="end" forceMount>
+                <DropdownMenuGroup>
+                    <DropdownMenuItem asChild>
+                        <Link href="/profile" className="flex flex-col items-start !p-3">
+                             <p className="text-base font-medium">View Profile</p>
+                             <p className="text-xs text-muted-foreground">u/{username}</p>
+                        </Link>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                        <Shirt className="mr-3" />
+                        <span>Edit Avatar</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <FileText className="mr-3" />
+                        <span>Drafts</span>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem className="flex flex-col items-start !p-3">
+                         <div className="flex items-center w-full">
+                            <Trophy className="mr-3" />
+                            <span>Achievements</span>
+                         </div>
+                        <p className="text-xs text-muted-foreground ml-9">2 unlocked</p>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem className="flex flex-col items-start !p-3">
+                         <div className="flex items-center w-full">
+                            <DollarSign className="mr-3" />
+                            <span>Earn</span>
+                         </div>
+                        <p className="text-xs text-muted-foreground ml-9">Earn cash</p>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem>
+                        <Shield className="mr-3" />
+                        <span>Premium</span>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Moon className="mr-3" />
+                        <span>Dark Mode</span>
+                        <Switch className="ml-auto" />
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
+                 <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-3" />
                   <span>Log out</span>
+                </DropdownMenuItem>
+                 <DropdownMenuSeparator />
+                 <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                        <Megaphone className="mr-3" />
+                        <span>Advertise</span>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem>
+                        <Clock className="mr-3" />
+                        <span>Try Pro</span>
+                         <span className="ml-auto text-xs font-bold text-orange-500">BETA</span>
+                    </DropdownMenuItem>
+                 </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    <Settings className="mr-3" />
+                    <span>Settings</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
