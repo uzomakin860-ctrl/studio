@@ -6,6 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Music, Send, Bookmark, CheckCircle2 } from 'lucide-react';
 import { CommentsSheet } from './comments-sheet';
+import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
+
 
 function formatCount(num: number) {
   if (num >= 1000000) {
@@ -20,10 +24,12 @@ function formatCount(num: number) {
 export function VideoPost({ video, isActive }: { video: Video, isActive: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const { user } = useUser();
+  const firestore = useFirestore();
 
   useEffect(() => {
     if (isActive) {
-      videoRef.current?.play();
+      videoRef.current?.play().catch(error => console.error("Video play failed:", error));
     } else {
       videoRef.current?.pause();
       if (videoRef.current) {
@@ -31,6 +37,22 @@ export function VideoPost({ video, isActive }: { video: Video, isActive: boolean
       }
     }
   }, [isActive]);
+
+  const handleLike = () => {
+    if (!user || !firestore) return;
+    const videoRef = doc(firestore, 'videos', video.id);
+    const isLiked = video.likes.includes(user.uid);
+
+    let newLikes;
+    if (isLiked) {
+      newLikes = video.likes.filter(uid => uid !== user.uid);
+    } else {
+      newLikes = [...video.likes, user.uid];
+    }
+    updateDocumentNonBlocking(videoRef, { likes: newLikes });
+  };
+  
+  const isLiked = user ? video.likes.includes(user.uid) : false;
 
   return (
     <>
@@ -41,9 +63,18 @@ export function VideoPost({ video, isActive }: { video: Video, isActive: boolean
           src={video.videoUrl}
           loop
           playsInline
+          // Muted for autoplay policy compliance
           muted
-          onClick={() => videoRef.current?.paused ? videoRef.current?.play() : videoRef.current?.pause()}
+          onClick={(e) => {
+            e.preventDefault();
+            if (videoRef.current) {
+               videoRef.current.muted = !videoRef.current.muted;
+            }
+          }}
         />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <p className="text-white/50 text-3xl font-bold">{videoRef.current?.muted ? 'Tap to unmute' : ''}</p>
+        </div>
         
         <div className="absolute bottom-20 left-0 right-0 p-4 text-white z-10 bg-gradient-to-t from-black/50 to-transparent">
           <div className="flex justify-between items-end">
@@ -70,16 +101,16 @@ export function VideoPost({ video, isActive }: { video: Video, isActive: boolean
                  <Button size="icon" variant="ghost" className="rounded-full bg-primary -mt-4 w-6 h-6 text-white text-xs hover:bg-primary/80">+</Button>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <Button size="icon" variant="ghost" className="rounded-full text-white hover:bg-white/20 hover:text-white">
-                  <Heart className="w-8 h-8" />
+                <Button size="icon" variant="ghost" className="rounded-full text-white hover:bg-white/20 hover:text-white" onClick={handleLike}>
+                  <Heart className={cn("w-8 h-8", isLiked && "fill-red-500 text-red-500")} />
                 </Button>
-                <span className="text-sm font-bold">{formatCount(video.likes)}</span>
+                <span className="text-sm font-bold">{formatCount(video.likes?.length || 0)}</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                  <Button size="icon" variant="ghost" className="rounded-full text-white hover:bg-white/20 hover:text-white" onClick={() => setIsCommentsOpen(true)}>
                   <MessageCircle className="w-8 h-8" />
                 </Button>
-                <span className="text-sm font-bold">{formatCount(video.comments)}</span>
+                <span className="text-sm font-bold">{formatCount(video.comments?.length || 0)}</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                  <Button size="icon" variant="ghost" className="rounded-full text-white hover:bg-white/20 hover:text-white">
@@ -103,7 +134,11 @@ export function VideoPost({ video, isActive }: { video: Video, isActive: boolean
           </div>
         </div>
       </div>
-      <CommentsSheet isOpen={isCommentsOpen} onOpenChange={setIsCommentsOpen} commentCount={video.comments} />
+      <CommentsSheet 
+        isOpen={isCommentsOpen} 
+        onOpenChange={setIsCommentsOpen} 
+        video={video}
+      />
     </>
   );
 }

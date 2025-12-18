@@ -13,10 +13,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Progress } from '@/components/ui/progress';
@@ -97,8 +96,8 @@ export default function UploadPage() {
             videoUrl,
             caption: values.caption,
             song: values.song,
-            likes: 0,
-            comments: 0,
+            likes: [],
+            comments: [],
             shares: 0,
             createdAt: serverTimestamp(),
           });
