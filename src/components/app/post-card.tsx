@@ -20,7 +20,6 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -29,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import Link from 'next/link';
 
 export function PostCard({ post }: { post: Post }) {
   const { user } = useUser();
@@ -93,7 +93,9 @@ export function PostCard({ post }: { post: Post }) {
                 <AvatarFallback>{post.username[0]}</AvatarFallback>
             </Avatar>
             <div>
-                <CardTitle className="text-base">{post.title}</CardTitle>
+                <Link href={`/post/${post.id}`} passHref>
+                  <CardTitle className="text-base hover:underline">{post.title}</CardTitle>
+                </Link>
                 <CardDescription>
                   <div className="flex items-center gap-2 text-xs">
                     <span>{post.username}</span>
@@ -132,9 +134,11 @@ export function PostCard({ post }: { post: Post }) {
             <ArrowDown className="h-4 w-4" />
          </Button>
         
-        <Button variant="ghost" size="sm" className="flex items-center gap-1.5 ml-4">
-          <MessageCircle className="h-4 w-4" />
-          <span className="text-xs">{post.comments?.length || 0}</span>
+        <Button variant="ghost" size="sm" className="flex items-center gap-1.5 ml-4" asChild>
+          <Link href={`/post/${post.id}`}>
+            <MessageCircle className="h-4 w-4" />
+            <span className="text-xs">{post.comments?.length || 0}</span>
+          </Link>
         </Button>
 
         {post.donations && (post.donations.cashAppName || post.donations.phoneNumber) && (
@@ -180,3 +184,5 @@ export function PostCard({ post }: { post: Post }) {
     </Card>
   );
 }
+
+    
