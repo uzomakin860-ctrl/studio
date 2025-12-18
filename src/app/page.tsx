@@ -146,36 +146,53 @@ export default function Home() {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile/edit-avatar">
                         <Shirt className="mr-3" />
                         <span>Edit Avatar</span>
+                      </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/drafts">
                         <FileText className="mr-3" />
                         <span>Drafts</span>
+                      </Link>
                     </DropdownMenuItem>
-                     <DropdownMenuItem className="flex flex-col items-start !p-3">
+                     <DropdownMenuItem asChild>
+                       <Link href="/achievements" className="flex flex-col items-start !p-3">
                          <div className="flex items-center w-full">
                             <Trophy className="mr-3" />
                             <span>Achievements</span>
                          </div>
                         <p className="text-xs text-muted-foreground ml-9">2 unlocked</p>
+                       </Link>
                     </DropdownMenuItem>
-                     <DropdownMenuItem className="flex flex-col items-start !p-3">
-                         <div className="flex items-center w-full">
-                            <DollarSign className="mr-3" />
-                            <span>Earn</span>
-                         </div>
-                        <p className="text-xs text-muted-foreground ml-9">Earn cash</p>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem>
-                        <Shield className="mr-3" />
-                        <span>Premium</span>
-                    </DropdownMenuItem>
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="flex flex-col items-start !p-3">
+                                <div className="flex items-center w-full">
+                                    <DollarSign className="mr-3" />
+                                    <span>Earn</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground ml-9">Earn cash</p>
+                            </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Earn Cash from Your Posts</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    You can enable donations on your posts to receive tips from other users. When you create a post, just flip the "Enable Donations" switch and enter your Cash App name or phone number.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Got it</AlertDialogCancel>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         <Moon className="mr-3" />
                         <span>Dark Mode</span>
-                        <Switch className="ml-auto" />
+                        <Switch className="ml-auto" checked={true} />
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
@@ -184,21 +201,11 @@ export default function Home() {
                   <span>Log out</span>
                 </DropdownMenuItem>
                  <DropdownMenuSeparator />
-                 <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                        <Megaphone className="mr-3" />
-                        <span>Advertise</span>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem>
-                        <Clock className="mr-3" />
-                        <span>Try Pro</span>
-                         <span className="ml-auto text-xs font-bold text-orange-500">BETA</span>
-                    </DropdownMenuItem>
-                 </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                    <Settings className="mr-3" />
-                    <span>Settings</span>
+                <DropdownMenuItem asChild>
+                    <Link href="/settings">
+                        <Settings className="mr-3" />
+                        <span>Settings</span>
+                    </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
