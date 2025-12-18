@@ -7,6 +7,7 @@ import {
   PlaySquare,
   Compass,
   Users,
+  LogIn,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -23,72 +24,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/firebase";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-const videos = [
-  {
-    id: 1,
-    user: {
-      name: "CreativeCoder",
-      avatar: "https://picsum.photos/seed/1/40/40",
-    },
-    description: "Just built this amazing Next.js app! #webdev #coding",
-    videoUrl: "https://storage.googleapis.com/web-dev-assets/video-dark.mp4",
-    likes: "1.2K",
-    comments: "243",
-    shares: "102",
-  },
-  {
-    id: 2,
-    user: {
-      name: "DanceMachine",
-      avatar: "https://picsum.photos/seed/2/40/40",
-    },
-    description: "New dance challenge! Can you do it? 💃🕺 #dance #challenge",
-    videoUrl: "https://storage.googleapis.com/web-dev-assets/video-dark.mp4",
-    likes: "5.6K",
-    comments: "891",
-    shares: "450",
-  },
-  {
-    id: 3,
-    user: {
-      name: "FoodieFusion",
-      avatar: "https://picsum.photos/seed/3/40/40",
-    },
-    description: "You HAVE to try this spicy ramen recipe! 🍜🔥 #food #recipe",
-    videoUrl: "https://storage.googleapis.com/web-dev-assets/video-dark.mp4",
-    likes: "3.1K",
-    comments: "457",
-    shares: "231",
-  },
-];
 
-function VideoPost({ video }: { video: (typeof videos)[0] }) {
+function VideoPost() {
   return (
     <div className="h-full w-full snap-center relative flex justify-center">
-      <video
-        src={video.videoUrl}
-        controls
-        loop
-        className="h-full object-contain"
-      />
-      <div className="absolute bottom-0 left-0 p-4 text-white bg-gradient-to-t from-black/50 to-transparent w-full">
-        <div className="flex items-center gap-2">
-            <Avatar>
-                <AvatarImage src={video.user.avatar} alt={video.user.name} />
-                <AvatarFallback>{video.user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <p className="font-bold">{video.user.name}</p>
-            <Button variant="outline" size="sm" className="h-7 text-white border-white bg-transparent hover:bg-white/20">
-                Follow
-            </Button>
-        </div>
-        <p className="text-sm my-2">{video.description}</p>
-        <div className="flex items-center gap-4 mt-2 text-sm">
-          <span>{video.likes} Likes</span>
-          <span>{video.comments} Comments</span>
-          <span>{video.shares} Shares</span>
-        </div>
+      <div className="absolute inset-0 bg-black flex items-center justify-center text-white">
+        <p>No videos yet. Be the first to upload!</p>
       </div>
     </div>
   );
@@ -96,6 +41,16 @@ function VideoPost({ video }: { video: (typeof videos)[0] }) {
 
 
 export default function Home() {
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
+
   return (
     <SidebarProvider>
       <Sidebar side="left" collapsible="icon">
@@ -137,14 +92,21 @@ export default function Home() {
       <SidebarInset className="!p-0 !m-0 !bg-black max-w-none">
          <header className="absolute top-0 left-0 z-10 p-4 flex items-center justify-between w-full">
           <SidebarTrigger className="text-white hover:bg-white/20 hover:text-white" />
-          <Button variant="outline" className="text-white border-white bg-transparent hover:bg-white/20">
-            <Upload className="mr-2" /> Upload
-          </Button>
+          {user ? (
+            <Button variant="outline" className="text-white border-white bg-transparent hover:bg-white/20">
+              <Upload className="mr-2" /> Upload
+            </Button>
+          ) : (
+            <Button asChild variant="outline" className="text-white border-white bg-transparent hover:bg-white/20">
+              <Link href="/login">
+                <LogIn className="mr-2" /> Login
+              </Link>
+            </Button>
+          )}
         </header>
         <main className="h-svh w-full snap-y snap-mandatory overflow-y-auto">
-          {videos.map((video) => (
-            <VideoPost key={video.id} video={video} />
-          ))}
+          {/* Will be populated with videos from firestore */}
+          <VideoPost />
         </main>
       </SidebarInset>
     </SidebarProvider>
