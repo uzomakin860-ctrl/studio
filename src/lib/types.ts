@@ -20,6 +20,7 @@ export type Post = {
   userProfileUrl: string;
   title: string;
   content: string;
+  imageUrl?: string;
   tags: string[];
   upvotes: string[]; // Array of user IDs who upvoted
   downvotes?: string[]; // Array of user IDs who downvoted

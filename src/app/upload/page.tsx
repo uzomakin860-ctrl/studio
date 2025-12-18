@@ -15,14 +15,16 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, addDocumentNonBlocking, getSdks } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { collection, serverTimestamp } from 'firebase/firestore';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, X } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import Image from 'next/image';
 
 const formSchema = z.object({
   title: z.string().min(1, { message: 'Title is required.' }).max(100, { message: 'Title must be 100 characters or less.' }),
@@ -38,6 +40,9 @@ export default function UploadPage() {
   const router = useRouter();
   const firestore = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,12 +63,48 @@ export default function UploadPage() {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
+  
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user || !firestore) return;
     
     setIsSubmitting(true);
     
+    let imageUrl: string | undefined = undefined;
+
+    if (imageFile) {
+        const { storage } = getSdks(getStorage().app);
+        const storageRef = ref(storage, `posts/${user.uid}/${Date.now()}_${imageFile.name}`);
+        try {
+            const snapshot = await uploadBytes(storageRef, imageFile);
+            imageUrl = await getDownloadURL(snapshot.ref);
+        } catch (error) {
+            console.error("Error uploading image: ", error);
+            setIsSubmitting(false);
+            // Optionally, show a toast to the user
+            return;
+        }
+    }
+
     try {
       const postsCollection = collection(firestore, 'posts');
       await addDocumentNonBlocking(postsCollection, {
@@ -72,6 +113,7 @@ export default function UploadPage() {
         userProfileUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
         title: values.title,
         content: values.content,
+        imageUrl,
         tags: values.tags?.split(',').map(tag => tag.trim()).filter(tag => tag) || [],
         upvotes: [],
         downvotes: [],
@@ -117,7 +159,7 @@ export default function UploadPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
+               <FormField
                 control={form.control}
                 name="title"
                 render={({ field }) => (
@@ -130,6 +172,36 @@ export default function UploadPage() {
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-2">
+                <FormLabel>Image (Optional)</FormLabel>
+                {imagePreview ? (
+                    <div className="relative">
+                        <Image src={imagePreview} alt="Image preview" width={600} height={400} className="rounded-md w-full object-cover aspect-video" />
+                        <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={removeImage}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ) : (
+                    <div 
+                        className="flex items-center justify-center w-full p-6 border-2 border-dashed rounded-md cursor-pointer hover:bg-accent"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <div className="text-center">
+                            <ImageIcon className="mx-auto h-10 w-10 text-muted-foreground" />
+                            <p className="mt-2 text-sm text-muted-foreground">Click to upload an image</p>
+                        </div>
+                        <Input 
+                            ref={fileInputRef}
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={handleImageChange}
+                        />
+                    </div>
+                )}
+              </div>
+
               <FormField
                 control={form.control}
                 name="content"

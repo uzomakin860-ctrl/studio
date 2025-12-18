@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -27,6 +28,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Post, Comment } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, use } from 'react';
@@ -207,6 +209,11 @@ export default function PostPage({ params }: { params: { postId: string } }) {
             </div>
           </div>
         </CardHeader>
+        {post.imageUrl && (
+            <div className="px-6 pb-4">
+                <Image src={post.imageUrl} alt={post.title} width={800} height={600} className="w-full object-cover rounded-md border" />
+            </div>
+        )}
         <CardContent>
           <p className="whitespace-pre-wrap">{isTranslated ? translatedContent : post.content}</p>
           <div className="flex gap-2 flex-wrap mt-4">

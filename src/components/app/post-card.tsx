@@ -37,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { translateText } from '@/ai/flows/translate-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -205,7 +206,14 @@ export function PostCard({ post }: { post: Post }) {
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent>
+       {post.imageUrl && (
+        <Link href={`/post/${post.id}`} passHref>
+            <div className="px-6">
+                <Image src={post.imageUrl} alt={post.title} width={600} height={400} className="w-full object-cover rounded-md border" />
+            </div>
+        </Link>
+      )}
+      <CardContent className={cn(post.imageUrl && "pt-4")}>
         <p className="whitespace-pre-wrap line-clamp-6">{isTranslated ? translatedContent : post.content}</p>
         <div className="flex gap-2 flex-wrap mt-4">
             {post.tags?.map(tag => (
@@ -286,5 +294,3 @@ export function PostCard({ post }: { post: Post }) {
     </Card>
   );
 }
-
-    
