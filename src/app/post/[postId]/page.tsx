@@ -30,7 +30,7 @@ import {
 import Link from 'next/link';
 import type { Post, Comment } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -65,7 +65,7 @@ export default function PostPage({ params }: { params: { postId: string } }) {
   const firestore = useFirestore();
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { postId } = params;
+  const { postId } = use(params);
 
   const postRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'posts', postId) : null),
