@@ -1,0 +1,198 @@
+/**
+ * Core Philosophy:
+ * This ruleset enforces a strict, private, user-ownership model. All data is
+ * considered private to the user who created it. Access control is primarily
+ * determined by the user's unique ID (`userId`) present in the document path.
+ *
+ * Data Structure:
+ * The data is hierarchically organized to enforce privacy. All user-generated
+ * content, such as 'echos' and 'interactions', is stored in subcollections
+ * under that user's root document: /users/{userId}.
+ * - /users/{userId}: Stores the user's public profile and private data.
+ * - /users/{userId}/echos/{echoId}: Stores the user's generated content.
+ * - /users/{userId}/echos/{echoId}/interactions/{interactionId}: Stores interactions on a user's content.
+ *
+ * Key Security Decisions:
+ * - Private by Default: No user can read, write, or list another user's data.
+ *   All operations are restricted to the owner of the data tree.
+ * - No User Listing: Listing the top-level `/users` collection is explicitly
+ *   disallowed to protect user privacy and prevent enumeration attacks.
+ * - Path-Based Security: Authorization is derived directly from the document path
+ *   (e.g., matching `request.auth.uid` with the `{userId}` wildcard). This
+ *   is simple, secure, and performant.
+ *
+ * Denormalization for Authorization:
+ * To ensure fast and simple authorization checks, key identifiers are denormalized.
+ * For example, an 'Echo' document under `/users/{userId}/echos/{echoId}` contains
+ * its own `userId` field. Security rules validate on creation that this internal
+ * field matches the `userId` from the path, ensuring relational integrity and
+ * preventing data from being created in the wrong user's data tree. These key
+ * fields are then made immutable on update.
+ *
+ * Structural Segregation:
+ * The current model does not distinguish between public and private data; all
+ * user content is treated as private. If public content (e.g., shareable 'echos')
+ * were required, a separate top-level collection (e.g., `/publicEchos`) would
+ * be recommended to segregate public and private data securely and efficiently.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    //-------------------------------------------------------------------------
+    // Helper Functions
+    //-------------------------------------------------------------------------
+
+    /**
+     * isSignedIn
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * isOwner
+     * Checks if the authenticated user's UID matches the provided userId.
+     * This is the foundation of the ownership model.
+     * @param userId The user ID to check against the request's auth UID.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * isExistingDoc
+     * Checks if the document being operated on currently exists.
+     * Used to protect against updates or deletes of non-existent documents.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    /**
+     * isOwnerOfExistingDoc
+     * Combines ownership and existence checks for state-changing operations.
+     * @param userId The owner's user ID.
+     */
+    function isOwnerOfExistingDoc(userId) {
+      return isOwner(userId) && isExistingDoc();
+    }
+    
+    /**
+     * userDataIsValidForCreate
+     * Validates that the user's ID is correctly set in the document body
+     * during creation to match the document's path ID.
+     * @param userId The userId from the document path.
+     */
+    function userDataIsValidForCreate(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * userDataIsValidForUpdate
+     * Validates that critical, immutable fields for a User document have not changed.
+     */
+    function userDataIsValidForUpdate() {
+      return request.resource.data.id == resource.data.id;
+    }
+    
+    /**
+     * echoDataIsValidForCreate
+     * Validates that the echo's owner ID is correctly set in the document body
+     * during creation to match the owner's path ID.
+     * @param userId The userId from the document path.
+     */
+    function echoDataIsValidForCreate(userId) {
+      return request.resource.data.userId == userId;
+    }
+
+    /**
+     * echoDataIsValidForUpdate
+     * Validates that critical, immutable fields for an Echo document have not changed.
+     */
+    function echoDataIsValidForUpdate() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    /**
+     * interactionDataIsValidForCreate
+     * Validates that interaction's relational IDs (userId, echoId) are set correctly.
+     * @param echoId The echoId from the document path.
+     */
+    function interactionDataIsValidForCreate(echoId) {
+      let incomingData = request.resource.data;
+      return incomingData.echoId == echoId && incomingData.userId == request.auth.uid;
+    }
+    
+    /**
+     * interactionDataIsValidForUpdate
+     * Validates that critical, immutable fields for an Interaction have not changed.
+     */
+    function interactionDataIsValidForUpdate() {
+      let newData = request.resource.data;
+      let oldData = resource.data;
+      return newData.userId == oldData.userId && newData.echoId == oldData.echoId;
+    }
+
+
+    //-------------------------------------------------------------------------
+    // Collection: users
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Controls access to user profile documents.
+     * @path /users/{userId}
+     * @allow (create) An authenticated user creating their own profile document.
+     * @deny (get) An authenticated user trying to read another user's profile.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && userDataIsValidForCreate(userId);
+      allow update: if isOwnerOfExistingDoc(userId) && userDataIsValidForUpdate();
+      allow delete: if isOwnerOfExistingDoc(userId);
+    }
+
+    //-------------------------------------------------------------------------
+    // Subcollection: echos
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Controls access to a user's private echos.
+     * @path /users/{userId}/echos/{echoId}
+     * @allow (create) A user creating an echo under their own profile.
+     * @deny (list) A user trying to list the echos of another user.
+     * @principle Enforces document ownership within a user's private data scope.
+     */
+    match /users/{userId}/echos/{echoId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && echoDataIsValidForCreate(userId);
+      allow update: if isOwnerOfExistingDoc(userId) && echoDataIsValidForUpdate();
+      allow delete: if isOwnerOfExistingDoc(userId);
+    }
+    
+    //-------------------------------------------------------------------------
+    // Subcollection: interactions
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Controls access to interactions on a user's echo. In this
+     *              private data model, only the echo owner can manage interactions.
+     * @path /users/{userId}/echos/{echoId}/interactions/{interactionId}
+     * @allow (create) The echo owner creating an interaction on their own echo.
+     * @deny (delete) A different user trying to delete an interaction on someone else's echo.
+     * @principle Path-based ownership, where the owner of the parent document (`echo`)
+     *              controls access to the subcollection documents (`interactions`).
+     */
+    match /users/{userId}/echos/{echoId}/interactions/{interactionId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && interactionDataIsValidForCreate(echoId);
+      allow update: if isOwnerOfExistingDoc(userId) && interactionDataIsValidForUpdate();
+      allow delete: if isOwnerOfExistingDoc(userId);
+    }
+  }
+}

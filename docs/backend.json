@@ -1,0 +1,196 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the EchoCanvas application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "username": {
+          "type": "string",
+          "description": "The user's chosen username."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "profilePictureUrl": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short biography or description of the user."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "createdAt"
+      ]
+    },
+    "Echo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Echo",
+      "type": "object",
+      "description": "Represents a spoken input, its textual representation, and the AI's response.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Echo entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who created the Echo. (Relationship: User 1:N Echo)"
+        },
+        "speechInput": {
+          "type": "string",
+          "description": "The original spoken input from the user (e.g., as an audio file URL or similar)."
+        },
+        "textInput": {
+          "type": "string",
+          "description": "The textual representation of the spoken input."
+        },
+        "aiResponse": {
+          "type": "string",
+          "description": "The AI-generated response to the user's input."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the echo was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "textInput",
+        "aiResponse",
+        "createdAt"
+      ]
+    },
+    "Interaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Interaction",
+      "type": "object",
+      "description": "Represents a like, comment, or share on an Echo.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Interaction entity."
+        },
+        "echoId": {
+          "type": "string",
+          "description": "Reference to the Echo that was interacted with. (Relationship: Echo 1:N Interaction)"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who performed the interaction. (Relationship: User 1:N Interaction)"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of interaction (e.g., 'like', 'comment', 'share')."
+        },
+        "commentText": {
+          "type": "string",
+          "description": "The text of the comment, if the interaction type is 'comment'."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the interaction occurred.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "echoId",
+        "userId",
+        "type",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Path-based ownership enables simple security rules based on `request.auth.uid == userId`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/echos/{echoId}",
+        "definition": {
+          "entityName": "Echo",
+          "schema": {
+            "$ref": "#/backend/entities/Echo"
+          },
+          "description": "Stores user-generated echos (speech inputs and AI responses). Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "echoId",
+              "description": "The unique identifier for the echo."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/echos/{echoId}/interactions/{interactionId}",
+        "definition": {
+          "entityName": "Interaction",
+          "schema": {
+            "$ref": "#/backend/entities/Interaction"
+          },
+          "description": "Stores interactions (likes, comments, shares) for each echo. Includes denormalized 'userId' and 'echoId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user who owns the echo."
+            },
+            {
+              "name": "echoId",
+              "description": "The unique identifier for the echo."
+            },
+            {
+              "name": "interactionId",
+              "description": "The unique identifier for the interaction."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support EchoCanvas's social media features, focusing on speech-to-text and AI-generated responses. The structure prioritizes authorization independence and efficient data retrieval. User data is stored in `/users/{userId}`, with Echos (user-generated content) nested under the user's document at `/users/{userId}/echos/{echoId}`. Interactions (likes, comments, shares) related to Echos are stored in a subcollection `/users/{userId}/echos/{echoId}/interactions/{interactionId}`. This nested structure ensures clear ownership and facilitates secure rules. The key to authorization independence is that each `Echo` document will denormalize the `userId` of the owner, allowing rules to validate ownership without `get()` calls to the parent `User` document. Similarly, `Interaction` documents denormalize the `userId` and the `echoId`. This approach simplifies security rules and enables atomic operations. Security rules will use path-based matching and `request.auth.uid` to enforce ownership, granting access only to the user who owns the data. Collection Group Queries are possible on `interactions` or `echos`, enabling efficient data aggregation and discovery across all users while maintaining security constraints. The use of explicit state modeling and semantic naming conventions enhances debuggability."
+  }
+}
