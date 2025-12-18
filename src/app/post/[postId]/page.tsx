@@ -192,6 +192,11 @@ export default function PostPage() {
                 <Image src={post.imageUrl} alt={post.title} width={800} height={600} className="w-full object-cover rounded-md border" />
             </div>
         )}
+        {post.videoUrl && (
+            <div className="px-6 pb-4">
+                <video src={post.videoUrl} controls className="w-full rounded-md border" />
+            </div>
+        )}
         <CardContent>
           <p className="whitespace-pre-wrap">{post.content}</p>
           <div className="flex gap-2 flex-wrap mt-4">

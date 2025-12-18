@@ -21,6 +21,7 @@ export type Post = {
   title: string;
   content: string;
   imageUrl?: string;
+  videoUrl?: string;
   tags: string[];
   upvotes: string[]; // Array of user IDs who upvoted
   downvotes?: string[]; // Array of user IDs who downvoted

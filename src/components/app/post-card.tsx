@@ -222,7 +222,14 @@ export function PostCard({ post }: { post: Post }) {
             </div>
         </Link>
       )}
-      <CardContent className={cn(post.imageUrl && "pt-4")}>
+       {post.videoUrl && (
+          <Link href={`/post/${post.id}`} passHref>
+              <div className="px-6">
+                  <video src={post.videoUrl} controls className="w-full rounded-md border" />
+              </div>
+          </Link>
+        )}
+      <CardContent className={cn((post.imageUrl || post.videoUrl) && "pt-4")}>
         <p className="whitespace-pre-wrap line-clamp-6">{post.content}</p>
         <div className="flex gap-2 flex-wrap mt-4">
             {post.tags?.map(tag => (
@@ -280,10 +287,10 @@ export function PostCard({ post }: { post: Post }) {
                 )}
                 {post.donations.phoneNumber && (
                    <div>
-                    <p className="font-semibold">Phone:</p>
-                    <p className="text-sm text-muted-foreground">{post.donations.phoneNumber}</p>
-                  </div>
-                )}
+                      <p className="font-semibold">Phone:</p>
+                      <p className="text-sm text-muted-foreground">{post.donations.phoneNumber}</p>
+                    </div>
+                  )}
               </div>
               <AlertDialogFooter>
                 <AlertDialogCancel>Close</AlertDialogCancel>

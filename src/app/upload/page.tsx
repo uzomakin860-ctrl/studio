@@ -19,7 +19,7 @@ import { useUser, useFirestore, addDocumentNonBlocking, getSdks } from '@/fireba
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { collection, serverTimestamp } from 'firebase/firestore';
-import { ArrowLeft, Image as ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, Film, Image as ImageIcon, X } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -40,8 +40,9 @@ export default function UploadPage() {
   const router = useRouter();
   const firestore = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -64,21 +65,27 @@ export default function UploadPage() {
     }
   }, [user, isUserLoading, router]);
   
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setImageFile(file);
+      setMediaFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        setMediaPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      if (file.type.startsWith('image/')) {
+        setMediaType('image');
+      } else if (file.type.startsWith('video/')) {
+        setMediaType('video');
+      }
     }
   };
 
-  const removeImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
+  const removeMedia = () => {
+    setMediaFile(null);
+    setMediaPreview(null);
+    setMediaType(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -90,15 +97,21 @@ export default function UploadPage() {
     setIsSubmitting(true);
     
     let imageUrl: string | undefined = undefined;
+    let videoUrl: string | undefined = undefined;
 
-    if (imageFile) {
+    if (mediaFile) {
         const { storage } = getSdks(getStorage().app);
-        const storageRef = ref(storage, `posts/${user.uid}/${Date.now()}_${imageFile.name}`);
+        const storageRef = ref(storage, `posts/${user.uid}/${Date.now()}_${mediaFile.name}`);
         try {
-            const snapshot = await uploadBytes(storageRef, imageFile);
-            imageUrl = await getDownloadURL(snapshot.ref);
+            const snapshot = await uploadBytes(storageRef, mediaFile);
+            const downloadUrl = await getDownloadURL(snapshot.ref);
+            if (mediaType === 'image') {
+                imageUrl = downloadUrl;
+            } else if (mediaType === 'video') {
+                videoUrl = downloadUrl;
+            }
         } catch (error) {
-            console.error("Error uploading image: ", error);
+            console.error("Error uploading file: ", error);
             setIsSubmitting(false);
             // Optionally, show a toast to the user
             return;
@@ -114,6 +127,7 @@ export default function UploadPage() {
         title: values.title,
         content: values.content,
         imageUrl,
+        videoUrl,
         tags: values.tags?.split(',').map(tag => tag.trim()).filter(tag => tag) || [],
         upvotes: [],
         downvotes: [],
@@ -174,11 +188,12 @@ export default function UploadPage() {
               />
 
               <div className="space-y-2">
-                <FormLabel>Image (Optional)</FormLabel>
-                {imagePreview ? (
+                <FormLabel>Image or Video (Optional)</FormLabel>
+                {mediaPreview ? (
                     <div className="relative">
-                        <Image src={imagePreview} alt="Image preview" width={600} height={400} className="rounded-md w-full object-cover aspect-video" />
-                        <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={removeImage}>
+                        {mediaType === 'image' && <Image src={mediaPreview} alt="Image preview" width={600} height={400} className="rounded-md w-full object-cover aspect-video" />}
+                        {mediaType === 'video' && <video src={mediaPreview} controls className="rounded-md w-full aspect-video" />}
+                        <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={removeMedia}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
@@ -188,15 +203,18 @@ export default function UploadPage() {
                         onClick={() => fileInputRef.current?.click()}
                     >
                         <div className="text-center">
-                            <ImageIcon className="mx-auto h-10 w-10 text-muted-foreground" />
-                            <p className="mt-2 text-sm text-muted-foreground">Click to upload an image</p>
+                            <div className="flex gap-4 justify-center">
+                                <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                                <Film className="h-10 w-10 text-muted-foreground" />
+                            </div>
+                            <p className="mt-2 text-sm text-muted-foreground">Click to upload an image or video</p>
                         </div>
                         <Input 
                             ref={fileInputRef}
                             type="file" 
                             className="hidden" 
-                            accept="image/*"
-                            onChange={handleImageChange}
+                            accept="image/*,video/*"
+                            onChange={handleFileChange}
                         />
                     </div>
                 )}
