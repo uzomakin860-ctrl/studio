@@ -1,4 +1,5 @@
-import { Award, BookOpen, Coffee, Feather, FirstAidKit, Gift, HeartHandshake, MessageSquare, ShieldCheck, Sparkles, Trophy } from 'lucide-react';
+
+import { Award, BookOpen, Coffee, Feather, HeartHandshake, MessageSquare, ShieldCheck, Star, Users } from 'lucide-react';
 import type { Achievement } from './types';
 
 export const achievements: Achievement[] = [
@@ -27,16 +28,22 @@ export const achievements: Achievement[] = [
     icon: Coffee,
   },
   {
-    id: 'good_samaritan',
-    title: 'Good Samaritan',
-    description: 'You received a donation for your post.',
-    icon: Gift,
+    id: 'enthusiast',
+    title: 'Enthusiast',
+    description: 'You have commented on 25 different posts.',
+    icon: Users,
   },
   {
-    id: 'patron',
-    title: 'Patron',
-    description: 'You donated to another user.',
+    id: 'helpful_hand',
+    title: 'Helpful Hand',
+    description: 'Your comment was marked as helpful.',
     icon: HeartHandshake,
+  },
+  {
+    id: 'popular_post',
+    title: 'Popular Post',
+    description: 'One of your posts has over 25 upvotes.',
+    icon: Star,
   },
   {
     id: 'story_teller',
