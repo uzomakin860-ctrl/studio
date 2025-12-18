@@ -1,3 +1,4 @@
+
 export type Comment = {
   id: string;
   userId: string;
@@ -6,6 +7,11 @@ export type Comment = {
   text: string;
   createdAt: any;
 };
+
+export type PostDonations = {
+  cashAppName?: string;
+  phoneNumber?: string;
+}
 
 export type Post = {
   id: string;
@@ -19,4 +25,5 @@ export type Post = {
   comments: Comment[];
   createdAt: any;
   isVerified?: boolean;
+  donations?: PostDonations | null;
 };

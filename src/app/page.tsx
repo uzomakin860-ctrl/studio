@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Plus, MessageCircle, ArrowUp } from "lucide-react";
@@ -82,6 +83,10 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      <footer className="py-8 text-center text-sm text-muted-foreground">
+        <p>Enjoying the app? Tip the creator! Bkash: 01308766555</p>
+      </footer>
     </div>
   );
 }

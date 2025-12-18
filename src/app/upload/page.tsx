@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,11 +22,15 @@ import { collection, serverTimestamp } from 'firebase/firestore';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 
 const formSchema = z.object({
   title: z.string().min(1, { message: 'Title is required.' }).max(100, { message: 'Title must be 100 characters or less.' }),
   content: z.string().min(1, { message: 'Content is required.' }),
   tags: z.string().optional(),
+  enableDonations: z.boolean().default(false).optional(),
+  cashAppName: z.string().optional(),
+  phoneNumber: z.string().optional(),
 });
 
 export default function UploadPage() {
@@ -40,8 +45,13 @@ export default function UploadPage() {
       title: '',
       content: '',
       tags: '',
+      enableDonations: false,
+      cashAppName: '',
+      phoneNumber: '',
     },
   });
+
+  const watchEnableDonations = form.watch('enableDonations');
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -66,6 +76,10 @@ export default function UploadPage() {
         upvotes: [],
         comments: [],
         createdAt: serverTimestamp(),
+        donations: values.enableDonations ? {
+          cashAppName: values.cashAppName,
+          phoneNumber: values.phoneNumber,
+        } : null,
       });
 
       router.push('/');
@@ -144,6 +158,56 @@ export default function UploadPage() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="enableDonations"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Enable Donations</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Allow other users to donate to you for this post.
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              {watchEnableDonations && (
+                <div className="space-y-4 rounded-lg border bg-accent/50 p-4">
+                   <FormField
+                    control={form.control}
+                    name="cashAppName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cash App Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="$username" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number (for other apps)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="+1234567890" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? 'Posting...' : 'Post'}
               </Button>

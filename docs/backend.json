@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -96,6 +97,20 @@
           "type": "string",
           "description": "Timestamp indicating when the post was created.",
           "format": "date-time"
+        },
+        "donations": {
+          "type": "object",
+          "description": "Donation details for the post.",
+          "properties": {
+            "cashAppName": {
+              "type": "string",
+              "description": "The Cash App name of the user."
+            },
+            "phoneNumber": {
+              "type": "string",
+              "description": "The phone number for other payment apps."
+            }
+          }
         }
       },
       "required": [
