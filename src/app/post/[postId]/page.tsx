@@ -14,7 +14,7 @@ import { ArrowUp, ArrowDown, Gift, Share, ArrowLeft, Send } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, updateDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
@@ -37,7 +37,8 @@ import { v4 as uuidv4 } from 'uuid';
 function CommentCard({ comment }: { comment: Comment }) {
   const timeAgo = comment.createdAt?.seconds
     ? formatDistanceToNow(new Date(comment.createdAt.seconds * 1000), { addSuffix: true })
-    : 'just now';
+    : comment.createdAt ? formatDistanceToNow(comment.createdAt, { addSuffix: true }) : 'just now';
+
 
   return (
     <div className="flex items-start gap-3">
@@ -127,7 +128,7 @@ export default function PostPage({ params }: { params: { postId: string } }) {
       username: user.email?.split('@')[0] || 'anonymous',
       userProfileUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
       text: commentText.trim(),
-      createdAt: serverTimestamp(),
+      createdAt: new Date(),
     };
 
     const updatedComments = [...(post.comments || []), newComment];
@@ -278,7 +279,7 @@ export default function PostPage({ params }: { params: { postId: string } }) {
 
         <div className="space-y-8">
             {post.comments && post.comments.length > 0 ? (
-                [...post.comments].sort((a,b) => b.createdAt.seconds - a.createdAt.seconds).map((comment) => (
+                [...post.comments].sort((a,b) => (b.createdAt?.seconds || b.createdAt) - (a.createdAt?.seconds || a.createdAt)).map((comment) => (
                     <CommentCard key={comment.id} comment={comment} />
                 ))
             ) : (
@@ -289,3 +290,5 @@ export default function PostPage({ params }: { params: { postId: string } }) {
     </div>
   );
 }
+
+    
