@@ -13,8 +13,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowUp, ArrowDown, Gift, Share, ArrowLeft, Send } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useUser, useFirestore, updateDocumentNonBlocking, useDoc, useMemoFirebase, addDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, updateDoc, collection, serverTimestamp, arrayUnion } from 'firebase/firestore';
+import { useUser, useFirestore, updateDocumentNonBlocking, useDoc, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { doc, updateDoc, collection, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
@@ -154,13 +154,11 @@ export default function PostPage() {
       username: currentUserProfile.username,
       userProfileUrl: currentUserProfile.profilePictureUrl || `https://picsum.photos/seed/${user.uid}/100`,
       text: commentText.trim(),
-      createdAt: new Date(),
+      createdAt: Timestamp.now(),
     };
 
-    const updatedComments = [...(post.comments || []), newComment];
-    
     try {
-        await updateDoc(postRef, { comments: updatedComments });
+        await updateDoc(postRef, { comments: arrayUnion(newComment) });
         setCommentText('');
         createNotification('comment');
     } catch (error) {
@@ -178,6 +176,9 @@ export default function PostPage() {
   const postDate = post.createdAt?.seconds
   ? format(new Date(post.createdAt.seconds * 1000), 'PPP')
   : 'a while ago';
+  
+  const sortedComments = post.comments?.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
 
   return (
      <div className="container mx-auto max-w-3xl p-4 pb-24">
@@ -315,8 +316,8 @@ export default function PostPage() {
         </div>
 
         <div className="space-y-8">
-            {post.comments && post.comments.length > 0 ? (
-                [...post.comments].sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).map((comment) => (
+            {sortedComments && sortedComments.length > 0 ? (
+                sortedComments.map((comment) => (
                     <CommentCard key={comment.id} comment={comment} />
                 ))
             ) : (
