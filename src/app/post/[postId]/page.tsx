@@ -13,8 +13,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowUp, ArrowDown, Gift, Share, ArrowLeft, Send } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useUser, useFirestore, updateDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore, updateDocumentNonBlocking, useDoc, useMemoFirebase, addDocumentNonBlocking, useCollection } from '@/firebase';
+import { doc, updateDoc, collection, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
 import Image from 'next/image';
-import type { Post, Comment } from '@/lib/types';
+import type { Post, Comment, UserProfile } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -76,9 +76,31 @@ export default function PostPage() {
     [firestore, postId]
   );
   const { data: post, isLoading } = useDoc<Post>(postRef);
+
+   const currentUserProfileRef = useMemoFirebase(
+    () => (user ? doc(firestore, `users/${user.uid}`) : null),
+    [user, firestore]
+  );
+  const { data: currentUserProfile } = useDoc<UserProfile>(currentUserProfileRef);
   
   if (isLoading || !post) {
     return <div className="container mx-auto max-w-3xl p-4 text-center">Loading...</div>;
+  }
+
+  const createNotification = (type: 'upvote' | 'comment') => {
+      if (!user || !currentUserProfile || !firestore || user.uid === post.userId) return;
+      const notificationsCollection = collection(firestore, 'notifications');
+      addDocumentNonBlocking(notificationsCollection, {
+        recipientId: post.userId,
+        senderId: user.uid,
+        senderUsername: currentUserProfile.username,
+        senderProfileUrl: currentUserProfile.profilePictureUrl || `https://picsum.photos/seed/${user.uid}/100`,
+        type: type,
+        postId: post.id,
+        postTitle: post.title,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
   }
   
   const handleUpvote = () => {
@@ -97,6 +119,7 @@ export default function PostPage() {
       if (isDownvoted) {
         newDownvotes = newDownvotes.filter(uid => uid !== user.uid);
       }
+      createNotification('upvote');
     }
     updateDocumentNonBlocking(postRef, { upvotes: newUpvotes, downvotes: newDownvotes });
   };
@@ -122,14 +145,14 @@ export default function PostPage() {
   };
 
   const handleAddComment = async () => {
-    if (!user || !postRef || !commentText.trim()) return;
+    if (!user || !postRef || !commentText.trim() || !currentUserProfile) return;
     setIsSubmitting(true);
     
     const newComment: Comment = {
       id: uuidv4(),
       userId: user.uid,
-      username: user.email?.split('@')[0] || 'anonymous',
-      userProfileUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
+      username: currentUserProfile.username,
+      userProfileUrl: currentUserProfile.profilePictureUrl || `https://picsum.photos/seed/${user.uid}/100`,
       text: commentText.trim(),
       createdAt: new Date(),
     };
@@ -139,6 +162,7 @@ export default function PostPage() {
     try {
         await updateDoc(postRef, { comments: updatedComments });
         setCommentText('');
+        createNotification('comment');
     } catch (error) {
         console.error("Error adding comment: ", error);
     } finally {

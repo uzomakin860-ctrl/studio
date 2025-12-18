@@ -14,8 +14,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowUp, ArrowDown, MessageCircle, Gift, Share, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useUser, useFirestore, updateDocumentNonBlocking, deleteDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { useUser, useFirestore, updateDocumentNonBlocking, deleteDocumentNonBlocking, useDoc, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { doc, arrayUnion, arrayRemove, collection, serverTimestamp } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -51,6 +51,22 @@ export function PostCard({ post }: { post: Post }) {
   );
   const { data: currentUserProfile } = useDoc<UserProfile>(currentUserProfileRef);
 
+  const createNotification = (type: 'upvote' | 'follow') => {
+      if (!user || !currentUserProfile || !firestore || user.uid === post.userId) return;
+      const notificationsCollection = collection(firestore, 'notifications');
+      addDocumentNonBlocking(notificationsCollection, {
+        recipientId: post.userId,
+        senderId: user.uid,
+        senderUsername: currentUserProfile.username,
+        senderProfileUrl: currentUserProfile.profilePictureUrl || `https://picsum.photos/seed/${user.uid}/100`,
+        type: type,
+        postId: type === 'upvote' ? post.id : undefined,
+        postTitle: type === 'upvote' ? post.title : undefined,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+  }
+
   const handleFollow = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user || !post || !firestore) return;
@@ -58,6 +74,7 @@ export function PostCard({ post }: { post: Post }) {
     const targetUserRef = doc(firestore, 'users', post.userId);
     updateDocumentNonBlocking(currentUserRef, { following: arrayUnion(post.userId) });
     updateDocumentNonBlocking(targetUserRef, { followers: arrayUnion(user.uid) });
+    createNotification('follow');
   };
 
   const handleUnfollow = (e: React.MouseEvent) => {
@@ -86,6 +103,7 @@ export function PostCard({ post }: { post: Post }) {
       if (isDownvoted) {
         newDownvotes = newDownvotes.filter(uid => uid !== user.uid);
       }
+      createNotification('upvote');
     }
     updateDocumentNonBlocking(postRef, { upvotes: newUpvotes, downvotes: newDownvotes });
   };

@@ -52,3 +52,16 @@ export type Achievement = {
     description: string;
     icon: React.ComponentType<{ className?: string }>;
 };
+
+export type Notification = {
+    id: string;
+    recipientId: string;
+    senderId: string;
+    senderUsername: string;
+    senderProfileUrl: string;
+    type: 'follow' | 'comment' | 'upvote';
+    postId?: string;
+    postTitle?: string;
+    read: boolean;
+    createdAt: any;
+}

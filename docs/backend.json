@@ -272,6 +272,57 @@
             }
         },
         "required": ["id", "senderId", "text", "createdAt"]
+    },
+    "Notification": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Notification",
+        "type": "object",
+        "description": "Represents a notification for a user.",
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "Unique identifier for the notification."
+            },
+            "recipientId": {
+                "type": "string",
+                "description": "The ID of the user who receives the notification."
+            },
+            "senderId": {
+                "type": "string",
+                "description": "The ID of the user who triggered the notification."
+            },
+            "senderUsername": {
+                "type": "string",
+                "description": "The username of the sender."
+            },
+            "senderProfileUrl": {
+                "type": "string",
+                "description": "The profile picture URL of the sender."
+            },
+            "type": {
+                "type": "string",
+                "description": "The type of notification.",
+                "enum": ["follow", "comment", "upvote"]
+            },
+            "postId": {
+                "type": "string",
+                "description": "The ID of the related post (for comments and upvotes)."
+            },
+            "postTitle": {
+                "type": "string",
+                "description": "The title of the related post."
+            },
+            "read": {
+                "type": "boolean",
+                "description": "Whether the notification has been read."
+            },
+            "createdAt": {
+                "type": "string",
+                "description": "Timestamp indicating when the notification was created.",
+                "format": "date-time"
+            }
+        },
+        "required": ["id", "recipientId", "senderId", "senderUsername", "type", "read", "createdAt"]
     }
   },
   "auth": {
@@ -320,6 +371,16 @@
                   "$ref": "#/backend/entities/Message"
               },
               "description": "Stores all messages for a given conversation."
+          }
+      },
+      {
+          "path": "/notifications/{notificationId}",
+          "definition": {
+              "entityName": "Notification",
+              "schema": {
+                  "$ref": "#/backend/entities/Notification"
+              },
+              "description": "Stores notifications for users."
           }
       }
     ]
