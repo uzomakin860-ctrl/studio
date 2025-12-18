@@ -88,17 +88,19 @@ export function PostCard({ post }: { post: Post }) {
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-             <Avatar className="h-8 w-8">
-                <AvatarImage src={post.userProfileUrl} />
-                <AvatarFallback>{post.username[0]}</AvatarFallback>
-            </Avatar>
+             <Link href={`/u/${post.username}`}>
+              <Avatar className="h-8 w-8">
+                  <AvatarImage src={post.userProfileUrl} />
+                  <AvatarFallback>{post.username[0]}</AvatarFallback>
+              </Avatar>
+             </Link>
             <div>
                 <Link href={`/post/${post.id}`} passHref>
                   <CardTitle className="text-base hover:underline">{post.title}</CardTitle>
                 </Link>
                 <CardDescription>
                   <div className="flex items-center gap-2 text-xs">
-                    <span>{post.username}</span>
+                    <Link href={`/u/${post.username}`} className="hover:underline">{post.username}</Link>
                     <span>·</span>
                     <span>{timeAgo}</span>
                   </div>
@@ -185,4 +187,3 @@ export function PostCard({ post }: { post: Post }) {
   );
 }
 
-    

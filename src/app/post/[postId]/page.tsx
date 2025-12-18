@@ -14,7 +14,7 @@ import { ArrowUp, ArrowDown, Gift, Share, ArrowLeft, Send } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, updateDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, serverTimestamp } from 'firebase/firestore';
+import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
@@ -41,13 +41,15 @@ function CommentCard({ comment }: { comment: Comment }) {
 
   return (
     <div className="flex items-start gap-3">
-      <Avatar className="h-8 w-8">
-        <AvatarImage src={comment.userProfileUrl} />
-        <AvatarFallback>{comment.username[0]}</AvatarFallback>
-      </Avatar>
+       <Link href={`/u/${comment.username}`}>
+        <Avatar className="h-8 w-8">
+            <AvatarImage src={comment.userProfileUrl} />
+            <AvatarFallback>{comment.username[0]}</AvatarFallback>
+        </Avatar>
+      </Link>
       <div className="flex-1">
         <div className="flex items-center gap-2 text-xs">
-          <span className="font-bold">{comment.username}</span>
+           <Link href={`/u/${comment.username}`} className="font-bold hover:underline">{comment.username}</Link>
           <span className="text-muted-foreground">·</span>
           <span className="text-muted-foreground">{timeAgo}</span>
         </div>
@@ -129,10 +131,16 @@ export default function PostPage({ params }: { params: { postId: string } }) {
 
     const updatedComments = [...(post.comments || []), newComment];
     
-    await updateDocumentNonBlocking(postRef, { comments: updatedComments });
-
-    setCommentText('');
-    setIsSubmitting(false);
+    // Using await with updateDoc to make sure it completes
+    try {
+        await updateDoc(postRef, { comments: updatedComments });
+        setCommentText('');
+    } catch (error) {
+        console.error("Error adding comment: ", error);
+        // Optionally show a toast to the user
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
 
@@ -157,15 +165,17 @@ export default function PostPage({ params }: { params: { postId: string } }) {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-               <Avatar className="h-8 w-8">
-                  <AvatarImage src={post.userProfileUrl} />
-                  <AvatarFallback>{post.username[0]}</AvatarFallback>
-              </Avatar>
+               <Link href={`/u/${post.username}`}>
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={post.userProfileUrl} />
+                    <AvatarFallback>{post.username[0]}</AvatarFallback>
+                </Avatar>
+               </Link>
               <div>
                   <CardTitle className="text-xl">{post.title}</CardTitle>
                   <CardDescription>
                     <div className="flex items-center gap-2 text-sm">
-                      <span>{post.username}</span>
+                      <Link href={`/u/${post.username}`} className="hover:underline">{post.username}</Link>
                       <span>·</span>
                       <span>{postDate}</span>
                     </div>
@@ -281,4 +291,3 @@ export default function PostPage({ params }: { params: { postId: string } }) {
   );
 }
 
-    
