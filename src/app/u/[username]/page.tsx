@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useCollection, useMemoFirebase, useFirestore, useUser, useDoc, updateDocumentNonBlocking } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { collection, query, where, limit, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, query, where, limit, doc, arrayUnion, arrayRemove, orderBy } from 'firebase/firestore';
 import type { UserProfile, Post } from '@/lib/types';
 import { achievements as allAchievements } from '@/lib/achievements';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +34,7 @@ export default function UserProfilePage({ params }: { params: { username: string
   const { data: currentUserProfile } = useDoc<UserProfile>(currentUserProfileRef);
 
   const userPostsQuery = useMemoFirebase(
-    () => (firestore && userProfile ? query(collection(firestore, 'posts'), where('userId', '==', userProfile.id)) : null),
+    () => (firestore && userProfile ? query(collection(firestore, 'posts'), where('userId', '==', userProfile.id), orderBy('createdAt', 'desc')) : null),
     [firestore, userProfile]
   );
   const { data: posts, isLoading: arePostsLoading } = useCollection<Post>(userPostsQuery);
