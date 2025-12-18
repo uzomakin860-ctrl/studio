@@ -117,6 +117,13 @@
             "type": "string"
           }
         },
+        "downvotes": {
+            "type": "array",
+            "description": "An array of user IDs who have downvoted the post.",
+            "items": {
+                "type": "string"
+            }
+        },
         "comments": {
           "type": "array",
           "description": "An array of comment objects on the post.",
