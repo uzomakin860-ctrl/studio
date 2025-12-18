@@ -8,11 +8,13 @@ export const BottomNavItem = ({
   icon,
   label,
   isActive = false,
+  hasBadge = false,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
   isActive?: boolean;
+  hasBadge?: boolean;
 }) => (
   <Link href={href}>
     <div
@@ -21,7 +23,10 @@ export const BottomNavItem = ({
         isActive && "text-white font-bold"
       )}
     >
-      {icon}
+      <div className="relative">
+        {icon}
+        {hasBadge && <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></div>}
+      </div>
       {label}
     </div>
   </Link>

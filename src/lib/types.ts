@@ -10,4 +10,5 @@ export type Video = {
   comments: number;
   shares: number;
   createdAt: any;
+  isVerified?: boolean;
 };
