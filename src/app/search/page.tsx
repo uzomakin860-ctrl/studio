@@ -39,16 +39,14 @@ export default function SearchPage() {
       // Search posts by title
       const postsQuery = query(
         collection(firestore, 'posts'),
-        where('title', '>=', searchTerm),
-        where('title', '<=', searchTerm + '\uf8ff'),
+        where('title', '==', searchTerm),
         limit(10)
       );
 
       // Search users by username
       const usersQuery = query(
         collection(firestore, 'users'),
-        where('username', '>=', searchTerm),
-        where('username', '<=', searchTerm + '\uf8ff'),
+        where('username', '==', searchTerm),
         limit(10)
       );
 
