@@ -42,6 +42,12 @@ export default function LoginPage() {
     },
   });
 
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     initiateEmailSignIn(auth, values.email, values.password, (error) => {
@@ -68,11 +74,13 @@ export default function LoginPage() {
     });
   }
 
-  useEffect(() => {
-    if (!isUserLoading && user) {
-      router.push('/');
-    }
-  }, [user, isUserLoading, router]);
+  if (isUserLoading || user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
 
   return (
