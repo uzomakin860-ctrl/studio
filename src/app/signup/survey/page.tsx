@@ -62,7 +62,8 @@ export default function SurveyPage() {
     const userProfileRef = doc(firestore, `users/${user.uid}`);
 
     try {
-      await updateDocumentNonBlocking(userProfileRef, {
+      // Use updateDocumentNonBlocking as it's designed for updating existing docs with mixed types
+      updateDocumentNonBlocking(userProfileRef, {
         playsVideoGames: values.playsVideoGames === 'yes',
         favoriteGame: values.favoriteGame,
         howHeard: values.howHeard,
