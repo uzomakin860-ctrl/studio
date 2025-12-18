@@ -36,19 +36,25 @@ export function setDocumentNonBlocking(docRef: DocumentReference, data: any, opt
  * Does NOT await the write operation internally.
  * Returns the Promise for the new doc ref, but typically not awaited by caller.
  */
-export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
-  const promise = addDoc(colRef, data)
-    .catch(error => {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-          path: colRef.path,
-          operation: 'create',
-          requestResourceData: data,
-        })
-      )
-    });
-  return promise;
+export async function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
+  try {
+    const docRef = await addDoc(colRef, data);
+    return docRef;
+  } catch (error) {
+    errorEmitter.emit(
+      'permission-error',
+      new FirestorePermissionError({
+        path: colRef.path,
+        operation: 'create',
+        requestResourceData: data,
+      })
+    );
+    // Re-throw or handle as needed, but for non-blocking, we might just log it.
+    // The original function was fire-and-forget, this async version can be awaited.
+    // To maintain a similar non-blocking feel for the caller, we don't re-throw here
+    // but depend on the global error handler.
+    return Promise.reject(error);
+  }
 }
 
 
