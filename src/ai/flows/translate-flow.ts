@@ -5,6 +5,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 
 const TranslateTextInputSchema = z.object({
@@ -17,6 +18,7 @@ export type TranslateTextInput = z.infer<typeof TranslateTextInputSchema>;
 const translateTextPrompt = ai.definePrompt(
     {
       name: 'translateTextPrompt',
+      model: googleAI.model('gemini-1.5-flash-latest'),
       input: { schema: TranslateTextInputSchema },
       output: { schema: z.string() },
       prompt: `Translate the following text to {{targetLanguage}}: {{text}}`,
