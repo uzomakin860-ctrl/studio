@@ -10,15 +10,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, ArrowDown, MessageCircle, Gift, Share, Languages } from 'lucide-react';
+import { ArrowUp, ArrowDown, MessageCircle, Gift, Share, Languages, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -27,9 +28,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import Link from 'next/link';
 import { useState } from 'react';
 import { translateText } from '@/ai/flows/translate-flow';
+import { useToast } from '@/hooks/use-toast';
 
 export function PostCard({ post }: { post: Post }) {
   const { user } = useUser();
@@ -37,6 +46,7 @@ export function PostCard({ post }: { post: Post }) {
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [isTranslated, setIsTranslated] = useState(false);
+  const { toast } = useToast();
 
   const handleTranslate = async () => {
     if (isTranslated && translatedContent) {
@@ -52,7 +62,11 @@ export function PostCard({ post }: { post: Post }) {
       setIsTranslated(true);
     } catch (error) {
       console.error("Translation failed:", error);
-      // Optionally, show a toast to the user
+      toast({
+        variant: "destructive",
+        title: "Translation Failed",
+        description: "Could not translate the post at this time.",
+      });
     } finally {
       setIsTranslating(false);
     }
@@ -98,6 +112,16 @@ export function PostCard({ post }: { post: Post }) {
     updateDocumentNonBlocking(postRef, { upvotes: newUpvotes, downvotes: newDownvotes });
   };
 
+  const handleDeletePost = () => {
+    if (!user || !firestore || user.uid !== post.userId) return;
+    const postRef = doc(firestore, 'posts', post.id);
+    deleteDocumentNonBlocking(postRef);
+    toast({
+        title: "Post Deleted",
+        description: "Your post has been successfully deleted.",
+    });
+  };
+
   const isUpvoted = user ? post.upvotes.includes(user.uid) : false;
   const isDownvoted = user ? post.downvotes?.includes(user.uid) : false;
   const voteCount = (post.upvotes?.length || 0) - (post.downvotes?.length || 0);
@@ -131,6 +155,53 @@ export function PostCard({ post }: { post: Post }) {
                 </CardDescription>
             </div>
           </div>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <Share className="mr-2 h-4 w-4" />
+                <span>Share</span>
+              </DropdownMenuItem>
+              {user && user.uid === post.userId && (
+                <>
+                  <DropdownMenuSeparator />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                       <DropdownMenuItem
+                        onSelect={(e) => e.preventDefault()}
+                        className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Delete</span>
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete your
+                          post from our servers.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeletePost}
+                          className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent>
