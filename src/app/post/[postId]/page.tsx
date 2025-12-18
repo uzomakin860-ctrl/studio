@@ -37,17 +37,16 @@ import { useParams } from 'next/navigation';
 
 
 function CommentCard({ comment }: { comment: Comment }) {
-  const timeAgo = comment.createdAt?.seconds
-    ? formatDistanceToNow(new Date(comment.createdAt.seconds * 1000), { addSuffix: true })
-    : comment.createdAt ? formatDistanceToNow(comment.createdAt, { addSuffix: true }) : 'just now';
-
+    const timeAgo = comment.createdAt
+    ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true })
+    : 'just now';
 
   return (
     <div className="flex items-start gap-3">
        <Link href={`/u/${comment.username}`}>
         <Avatar className="h-8 w-8">
             <AvatarImage src={comment.userProfileUrl} />
-            <AvatarFallback>{comment.username[0]}</AvatarFallback>
+            <AvatarFallback>{comment.username?.[0]?.toUpperCase()}</AvatarFallback>
         </Avatar>
       </Link>
       <div className="flex-1">
@@ -90,11 +89,13 @@ export default function PostPage() {
   const createNotification = (type: 'upvote' | 'comment') => {
       if (!user || !currentUserProfile || !firestore || user.uid === post.userId) return;
       const notificationsCollection = collection(firestore, 'notifications');
+      const profileUrl = currentUserProfile?.profilePictureUrl || user.photoURL;
+      
       addDocumentNonBlocking(notificationsCollection, {
         recipientId: post.userId,
         senderId: user.uid,
         senderUsername: currentUserProfile.username,
-        senderProfileUrl: currentUserProfile.profilePictureUrl || user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
+        senderProfileUrl: profileUrl,
         type: type,
         postId: post.id,
         postTitle: post.title,
@@ -148,11 +149,13 @@ export default function PostPage() {
     if (!user || !postRef || !commentText.trim() || !currentUserProfile) return;
     setIsSubmitting(true);
     
+    const profileUrl = currentUserProfile?.profilePictureUrl || user.photoURL;
+
     const newComment: Comment = {
       id: uuidv4(),
       userId: user.uid,
       username: currentUserProfile.username,
-      userProfileUrl: currentUserProfile.profilePictureUrl || user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
+      userProfileUrl: profileUrl || '',
       text: commentText.trim(),
       createdAt: Timestamp.now(),
     };
@@ -173,11 +176,11 @@ export default function PostPage() {
   const isDownvoted = user ? post.downvotes?.includes(user.uid) : false;
   const voteCount = (post.upvotes?.length || 0) - (post.downvotes?.length || 0);
 
-  const postDate = post.createdAt?.seconds
-  ? format(new Date(post.createdAt.seconds * 1000), 'PPP')
+  const postDate = post.createdAt
+  ? format(post.createdAt.toDate(), 'PPP')
   : 'a while ago';
   
-  const sortedComments = post.comments?.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+  const sortedComments = post.comments?.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
 
 
   return (
@@ -196,7 +199,7 @@ export default function PostPage() {
                <Link href={`/u/${post.username}`}>
                 <Avatar className="h-8 w-8">
                     <AvatarImage src={post.userProfileUrl} />
-                    <AvatarFallback>{post.username[0]}</AvatarFallback>
+                    <AvatarFallback>{post.username?.[0]?.toUpperCase()}</AvatarFallback>
                 </Avatar>
                </Link>
               <div>

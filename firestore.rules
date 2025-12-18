@@ -6,9 +6,14 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+    
+    function isParticipant(conversationId) {
+      return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+    }
 
     match /users/{userId} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow read;
+      allow write: if isSignedIn() && request.auth.uid == userId;
     }
 
     match /posts/{postId} {
@@ -19,7 +24,16 @@ service cloud.firestore {
 
     match /notifications/{notificationId} {
       allow read: if isSignedIn() && resource.data.recipientId == request.auth.uid;
-      allow create: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    
+    match /conversations/{conversationId} {
+      allow read, write: if isParticipant(conversationId);
+    }
+    
+    match /conversations/{conversationId}/messages/{messageId} {
+       allow read, write: if isParticipant(conversationId);
+       allow create: if isParticipant(conversationId) && request.resource.data.senderId == request.auth.uid;
     }
   }
 }

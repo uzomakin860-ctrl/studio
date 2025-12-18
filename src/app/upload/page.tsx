@@ -123,7 +123,7 @@ export default function UploadPage() {
       await addDocumentNonBlocking(postsCollection, {
         userId: user.uid,
         username: user.email?.split('@')[0] || 'anonymous',
-        userProfileUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
+        userProfileUrl: user.photoURL || '',
         title: values.title,
         content: values.content,
         imageUrl,

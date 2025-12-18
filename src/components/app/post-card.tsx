@@ -54,11 +54,13 @@ export function PostCard({ post }: { post: Post }) {
   const createNotification = (type: 'upvote' | 'follow') => {
       if (!user || !currentUserProfile || !firestore || user.uid === post.userId) return;
       const notificationsCollection = collection(firestore, 'notifications');
+      const profileUrl = currentUserProfile?.profilePictureUrl || user.photoURL;
+
       addDocumentNonBlocking(notificationsCollection, {
         recipientId: post.userId,
         senderId: user.uid,
         senderUsername: currentUserProfile.username,
-        senderProfileUrl: currentUserProfile.profilePictureUrl || user.photoURL || `https://picsum.photos/seed/${user.uid}/100`,
+        senderProfileUrl: profileUrl,
         type: type,
         postId: type === 'upvote' ? post.id : undefined,
         postTitle: type === 'upvote' ? post.title : undefined,
@@ -145,9 +147,9 @@ export function PostCard({ post }: { post: Post }) {
   const isDownvoted = user ? post.downvotes?.includes(user.uid) : false;
   const voteCount = (post.upvotes?.length || 0) - (post.downvotes?.length || 0);
 
-  const timeAgo = post.createdAt?.seconds
-  ? formatDistanceToNow(new Date(post.createdAt.seconds * 1000), { addSuffix: true })
-  : 'just now';
+  const timeAgo = post.createdAt
+    ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true })
+    : 'just now';
 
 
   return (
@@ -158,7 +160,7 @@ export function PostCard({ post }: { post: Post }) {
              <Link href={`/u/${post.username}`}>
               <Avatar className="h-8 w-8">
                   <AvatarImage src={post.userProfileUrl} />
-                  <AvatarFallback>{post.username[0]}</AvatarFallback>
+                  <AvatarFallback>{post.username?.[0]?.toUpperCase()}</AvatarFallback>
               </Avatar>
              </Link>
             <div className="flex-1 min-w-0">

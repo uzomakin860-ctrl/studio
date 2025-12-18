@@ -12,7 +12,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { Card } from '@/components/ui/card';
 
 function NotificationItem({ notification }: { notification: Notification }) {
-    const timeAgo = formatDistanceToNow(notification.createdAt.toDate(), { addSuffix: true });
+    const timeAgo = notification.createdAt 
+    ? formatDistanceToNow(notification.createdAt.toDate(), { addSuffix: true })
+    : "just now";
     
     const getIcon = () => {
         switch(notification.type) {

@@ -1,3 +1,4 @@
+import type { Timestamp } from 'firebase/firestore';
 
 export type Comment = {
   id: string;
@@ -5,7 +6,7 @@ export type Comment = {
   username: string;
   userProfileUrl: string;
   text: string;
-  createdAt: any;
+  createdAt: Timestamp;
 };
 
 export type PostDonations = {
@@ -26,7 +27,7 @@ export type Post = {
   upvotes: string[]; // Array of user IDs who upvoted
   downvotes?: string[]; // Array of user IDs who downvoted
   comments: Comment[];
-  createdAt: any;
+  createdAt: Timestamp;
   isVerified?: boolean;
   donations?: PostDonations | null;
 };
@@ -63,5 +64,5 @@ export type Notification = {
     postId?: string;
     postTitle?: string;
     read: boolean;
-    createdAt: any;
+    createdAt: Timestamp;
 }
