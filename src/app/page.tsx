@@ -176,12 +176,11 @@ export default function Home() {
                       </Link>
                     </DropdownMenuItem>
                      <DropdownMenuItem asChild>
-                       <Link href="/achievements" className="flex flex-col items-start !p-3">
+                       <Link href="/achievements">
                          <div className="flex items-center w-full">
                             <Trophy className="mr-3" />
                             <span>Achievements</span>
                          </div>
-                        <p className="text-xs text-muted-foreground ml-9">2 unlocked</p>
                        </Link>
                     </DropdownMenuItem>
                      <AlertDialog>

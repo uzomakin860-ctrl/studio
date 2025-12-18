@@ -59,6 +59,20 @@
         "howHeard": {
             "type": "string",
             "description": "How the user heard about the application."
+        },
+        "following": {
+            "type": "array",
+            "description": "A list of user IDs that this user is following.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "followers": {
+            "type": "array",
+            "description": "A list of user IDs that are following this user.",
+            "items": {
+                "type": "string"
+            }
         }
       },
       "required": [
@@ -98,6 +112,16 @@
           "type": "string",
           "description": "The main content of the post."
         },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of an image attached to the post.",
+          "format": "uri"
+        },
+        "videoUrl": {
+          "type": "string",
+          "description": "URL of a video attached to the post.",
+          "format": "uri"
+        },
         "tags": {
           "type": "array",
           "description": "A list of tags categorizing the post.",
@@ -111,6 +135,13 @@
           "items": {
             "type": "string"
           }
+        },
+        "downvotes": {
+            "type": "array",
+            "description": "An array of user IDs who have downvoted the post.",
+            "items": {
+                "type": "string"
+            }
         },
         "comments": {
           "type": "array",
