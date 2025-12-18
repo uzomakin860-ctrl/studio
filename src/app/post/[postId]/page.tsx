@@ -60,15 +60,15 @@ function CommentCard({ comment }: { comment: Comment }) {
 }
 
 
-export default function PostPage({ params: { postId } }: { params: { postId: string } }) {
+export default function PostPage({ params }: { params: { postId: string } }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const postRef = useMemoFirebase(
-    () => (firestore ? doc(firestore, 'posts', postId) : null),
-    [firestore, postId]
+    () => (firestore ? doc(firestore, 'posts', params.postId) : null),
+    [firestore, params.postId]
   );
   const { data: post, isLoading } = useDoc<Post>(postRef);
 
@@ -131,13 +131,11 @@ export default function PostPage({ params: { postId } }: { params: { postId: str
 
     const updatedComments = [...(post.comments || []), newComment];
     
-    // Using await with updateDoc to make sure it completes
     try {
         await updateDoc(postRef, { comments: updatedComments });
         setCommentText('');
     } catch (error) {
         console.error("Error adding comment: ", error);
-        // Optionally show a toast to the user
     } finally {
         setIsSubmitting(false);
     }
