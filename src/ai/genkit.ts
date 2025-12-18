@@ -1,4 +1,4 @@
-import { genkit, Ai } from '@genkit-ai/core';
+import { genkit, Ai } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 // Initialize the AI instance
