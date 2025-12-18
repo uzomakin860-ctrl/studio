@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu, Heart, LogOut, User as UserIcon, Shirt, FileText, Trophy, DollarSign, Shield, Moon, Settings, Megaphone, Clock, Ghost } from "lucide-react";
+import { Plus, MessageCircle, ArrowUp, Search, Bell, Menu, Heart, LogOut, User as UserIcon, Shirt, FileText, Trophy, DollarSign, Shield, Moon, Settings, Megaphone, Clock, Ghost, Inbox } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useUser, useMemoFirebase, useAuth } from "@/firebase";
@@ -107,6 +107,11 @@ export default function Home() {
             <Button variant="ghost" size="icon" asChild>
               <Link href="/search">
                 <Search />
+              </Link>
+            </Button>
+             <Button variant="ghost" size="icon" asChild>
+              <Link href="/inbox">
+                <Inbox />
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild>
