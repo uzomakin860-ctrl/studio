@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, updateDocumentNonBlocking, useDoc, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { doc, updateDoc, collection, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -34,13 +34,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from 'next/navigation';
+import { ClientTime } from '@/components/app/client-time';
 
 
 function CommentCard({ comment }: { comment: Comment }) {
-    const timeAgo = comment.createdAt
-    ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true })
-    : 'just now';
-
   return (
     <div className="flex items-start gap-3">
        <Link href={`/u/${comment.username}`}>
@@ -53,7 +50,7 @@ function CommentCard({ comment }: { comment: Comment }) {
         <div className="flex items-center gap-2 text-xs">
            <Link href={`/u/${comment.username}`} className="font-bold hover:underline">{comment.username}</Link>
           <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">{timeAgo}</span>
+          <ClientTime timestamp={comment.createdAt} className="text-muted-foreground" />
         </div>
         <p className="text-sm mt-1">{comment.text}</p>
       </div>
@@ -89,7 +86,7 @@ export default function PostPage() {
   const createNotification = (type: 'upvote' | 'comment') => {
       if (!user || !currentUserProfile || !firestore || user.uid === post.userId) return;
       const notificationsCollection = collection(firestore, 'notifications');
-      const profileUrl = currentUserProfile?.profilePictureUrl || user.photoURL;
+      const profileUrl = currentUserProfile?.profilePictureUrl || user.photoURL || '';
       
       addDocumentNonBlocking(notificationsCollection, {
         recipientId: post.userId,
@@ -149,7 +146,7 @@ export default function PostPage() {
     if (!user || !postRef || !commentText.trim() || !currentUserProfile) return;
     setIsSubmitting(true);
     
-    const profileUrl = currentUserProfile?.profilePictureUrl || user.photoURL;
+    const profileUrl = currentUserProfile?.profilePictureUrl || user.photoURL || '';
 
     const newComment: Comment = {
       id: uuidv4(),
@@ -180,7 +177,11 @@ export default function PostPage() {
   ? format(post.createdAt.toDate(), 'PPP')
   : 'a while ago';
   
-  const sortedComments = post.comments?.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+  const sortedComments = post.comments?.sort((a, b) => {
+    const dateA = a.createdAt?.toDate() ?? new Date(0);
+    const dateB = b.createdAt?.toDate() ?? new Date(0);
+    return dateB.getTime() - dateA.getTime();
+  });
 
 
   return (

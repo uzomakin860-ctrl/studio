@@ -17,7 +17,6 @@ import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, updateDocumentNonBlocking, deleteDocumentNonBlocking, useDoc, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { doc, arrayUnion, arrayRemove, collection, serverTimestamp } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +38,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
+import { ClientTime } from './client-time';
 
 export function PostCard({ post }: { post: Post }) {
   const { user } = useUser();
@@ -54,7 +54,7 @@ export function PostCard({ post }: { post: Post }) {
   const createNotification = (type: 'upvote' | 'follow') => {
       if (!user || !currentUserProfile || !firestore || user.uid === post.userId) return;
       const notificationsCollection = collection(firestore, 'notifications');
-      const profileUrl = currentUserProfile?.profilePictureUrl || user.photoURL;
+      const profileUrl = currentUserProfile?.profilePictureUrl || user.photoURL || '';
 
       addDocumentNonBlocking(notificationsCollection, {
         recipientId: post.userId,
@@ -147,11 +147,6 @@ export function PostCard({ post }: { post: Post }) {
   const isDownvoted = user ? post.downvotes?.includes(user.uid) : false;
   const voteCount = (post.upvotes?.length || 0) - (post.downvotes?.length || 0);
 
-  const timeAgo = post.createdAt
-    ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true })
-    : 'just now';
-
-
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -181,7 +176,7 @@ export function PostCard({ post }: { post: Post }) {
                       </>
                     )}
                     <span>·</span>
-                    <span>{timeAgo}</span>
+                    <ClientTime timestamp={post.createdAt} />
                   </div>
                 </CardDescription>
             </div>

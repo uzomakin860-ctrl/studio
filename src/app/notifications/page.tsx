@@ -8,13 +8,10 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import type { Notification } from '@/lib/types';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatDistanceToNow } from 'date-fns';
 import { Card } from '@/components/ui/card';
+import { ClientTime } from '@/components/app/client-time';
 
 function NotificationItem({ notification }: { notification: Notification }) {
-    const timeAgo = notification.createdAt 
-    ? formatDistanceToNow(notification.createdAt.toDate(), { addSuffix: true })
-    : "just now";
     
     const getIcon = () => {
         switch(notification.type) {
@@ -41,7 +38,9 @@ function NotificationItem({ notification }: { notification: Notification }) {
             </div>
             <div className="flex-1">
                 <p className="text-sm">{getText()}</p>
-                <p className="text-xs text-muted-foreground mt-1">{timeAgo}</p>
+                <div className="text-xs text-muted-foreground mt-1">
+                    <ClientTime timestamp={notification.createdAt} />
+                </div>
             </div>
             <Avatar className="h-10 w-10">
                 <AvatarImage src={notification.senderProfileUrl} />
