@@ -7,17 +7,16 @@ export type Comment = {
   createdAt: any;
 };
 
-export type Video = {
+export type Post = {
   id: string;
   userId: string;
   username: string;
   userProfileUrl: string;
-  videoUrl: string;
-  caption: string;
-  song: string;
-  likes: string[]; // Array of user IDs who liked the video
-  comments: Comment[]; // Array of comment objects
-  shares: number;
+  title: string;
+  content: string;
+  tags: string[];
+  upvotes: string[]; // Array of user IDs who upvoted
+  comments: Comment[];
   createdAt: any;
   isVerified?: boolean;
 };

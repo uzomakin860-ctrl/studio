@@ -11,24 +11,10 @@ service cloud.firestore {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
 
-    match /videos/{videoId} {
-      // Anyone can read videos
+    match /posts/{postId} {
       allow read: if true;
-      // Only authenticated users can create videos
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      // Only the user who created the video can update or delete it
       allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-
-      match /interactions/{interactionId} {
-        // Anyone can read interactions
-        allow read: if true;
-        // Only authenticated users can create interactions (likes/comments)
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        // Only the user who created the interaction can delete it
-        allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-        // Users cannot update interactions, only create or delete them
-        allow update: if false;
-      }
     }
   }
 }

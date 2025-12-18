@@ -4,7 +4,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the ClipStream application.",
+      "description": "Represents a user of the application.",
       "properties": {
         "id": {
           "type": "string",
@@ -41,62 +41,60 @@
         "createdAt"
       ]
     },
-    "Video": {
+    "Post": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Video",
+      "title": "Post",
       "type": "object",
-      "description": "Represents a video post in the application.",
+      "description": "Represents a text-based post in the application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Video entity."
+          "description": "Unique identifier for the Post entity."
         },
         "userId": {
           "type": "string",
-          "description": "Reference to the User who created the Video."
+          "description": "Reference to the User who created the Post."
         },
         "username": {
           "type": "string",
-          "description": "Username of the user who posted the video."
+          "description": "Username of the user who created the post."
         },
         "userProfileUrl": {
           "type": "string",
           "description": "URL of the profile picture of the user who posted."
         },
-        "videoUrl": {
+        "title": {
           "type": "string",
-          "description": "URL of the uploaded video file.",
-          "format": "uri"
+          "description": "The title of the post."
         },
-        "caption": {
+        "content": {
           "type": "string",
-          "description": "The caption for the video."
+          "description": "The main content of the post."
         },
-        "song": {
-          "type": "string",
-          "description": "The name of the song used in the video."
-        },
-        "likes": {
+        "tags": {
           "type": "array",
-          "description": "An array of user IDs who have liked the video.",
+          "description": "A list of tags categorizing the post.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "upvotes": {
+          "type": "array",
+          "description": "An array of user IDs who have upvoted the post.",
           "items": {
             "type": "string"
           }
         },
         "comments": {
           "type": "array",
-          "description": "An array of comment objects on the video.",
+          "description": "An array of comment objects on the post.",
           "items": {
             "$ref": "#/backend/entities/Comment"
           }
         },
-        "shares": {
-          "type": "number",
-          "description": "Number of shares of the video."
-        },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp indicating when the video was created.",
+          "description": "Timestamp indicating when the post was created.",
           "format": "date-time"
         }
       },
@@ -104,9 +102,8 @@
         "id",
         "userId",
         "username",
-        "videoUrl",
-        "caption",
-        "song",
+        "title",
+        "content",
         "createdAt"
       ]
     },
@@ -114,7 +111,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Comment",
       "type": "object",
-      "description": "Represents a comment on a Video.",
+      "description": "Represents a comment on a Post.",
       "properties": {
         "id": {
           "type": "string",
@@ -170,13 +167,13 @@
         }
       },
       {
-        "path": "/videos/{videoId}",
+        "path": "/posts/{postId}",
         "definition": {
-          "entityName": "Video",
+          "entityName": "Post",
           "schema": {
-            "$ref": "#/backend/entities/Video"
+            "$ref": "#/backend/entities/Post"
           },
-          "description": "Stores all video posts. This top-level collection allows for easy querying of all videos for the main feed."
+          "description": "Stores all posts. This top-level collection allows for easy querying of all posts for the main feed."
         }
       }
     ]
