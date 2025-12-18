@@ -31,7 +31,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Post, Comment } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, use } from 'react';
+import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { translateText } from '@/ai/flows/translate-flow';
 
@@ -68,7 +68,7 @@ export default function PostPage({ params }: { params: { postId: string } }) {
   const firestore = useFirestore();
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { postId } = use(params);
+  const { postId } = params;
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [isTranslated, setIsTranslated] = useState(false);
@@ -313,7 +313,7 @@ export default function PostPage({ params }: { params: { postId: string } }) {
 
         <div className="space-y-8">
             {post.comments && post.comments.length > 0 ? (
-                [...post.comments].sort((a,b) => (b.createdAt?.seconds || b.createdAt) - (a.createdAt?.seconds || a.createdAt)).map((comment) => (
+                [...post.comments].sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).map((comment) => (
                     <CommentCard key={comment.id} comment={comment} />
                 ))
             ) : (
